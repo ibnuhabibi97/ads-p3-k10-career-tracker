@@ -15,9 +15,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 # SessionLocal akan digunakan untuk membuat instance koneksi di setiap request (Dependency Injection)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class yang akan diwarisi oleh semua model ORM kita
-Base = declarative_base()
-
 # Dependency untuk mendapatkan session database di FastAPI
 def get_db():
     db = SessionLocal()
