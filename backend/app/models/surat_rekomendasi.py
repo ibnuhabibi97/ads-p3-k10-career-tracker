@@ -6,12 +6,12 @@ import datetime
 class SuratRekomendasi(Base):
     __tablename__ = "surat_rekomendasi"
 
-    id_surat = Column(Integer, primary_key=True, index=True)
+    surat_id = Column(Integer, primary_key=True, index=True)
     mahasiswa_id = Column(Integer, ForeignKey("mahasiswa.user_id"), nullable=False)
     dosen_id = Column(Integer, ForeignKey("dosen.user_id"), nullable=False)
     
-    isi_surat = Column(String, nullable=False)
-    tanggal = Column(Date, default=datetime.date.today)
+    dokumen_surat = Column(String, nullable=False)
+    status_surat = Column(String, default="Pending") # Contoh: Pending, Diterima, Ditolak
 
     # Relasi
     mahasiswa = relationship("Mahasiswa", back_populates="surat_rekomendasi")
