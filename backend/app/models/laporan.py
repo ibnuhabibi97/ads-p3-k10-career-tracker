@@ -19,3 +19,4 @@ class Laporan(Base):
     # Relasi
     mahasiswa = relationship("Mahasiswa", back_populates="laporans")
     dosen = relationship("Dosen", back_populates="laporans_dinilai")
+    logbooks = relationship("Logbook", back_populates="laporan")

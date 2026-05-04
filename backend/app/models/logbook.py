@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, Interval, String, Boolean, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 import datetime
@@ -6,13 +6,19 @@ import datetime
 class Logbook(Base):
     __tablename__ = "logbook"
 
-    id_logbook = Column(Integer, primary_key=True, index=True)
+    logbook_id = Column(Integer, primary_key=True, index=True)
+    laporan_id = Column(Integer, ForeignKey("laporan.laporan_id"), nullable=False)
     mahasiswa_id = Column(Integer, ForeignKey("mahasiswa.user_id"), nullable=False)
     
-    tgl_log = Column(Date, default=datetime.date.today)
-    kegiatan = Column(String, nullable=False)
-    kendala = Column(String, nullable=True)
-    status_verifikasi = Column(Boolean, default=False)
+    tanggal_log = Column(Date, default=datetime.date.today)
+    waktu_mulai = Column(DateTime, nullable=False)
+    waktu_selesai = Column(DateTime, nullable=False)
+    durasi_kegiatan = Column(Interval, nullable=False) # Durasi dalam jam
+    dosen_pembimbing = Column(String, nullable=False)
+    keterangann = Column(String, nullable=False)
+    media = Column(String, nullable=True)
+    dokumentasi = Column(String, nullable=True) # Path/URL file
+    jenis_kegiatan = Column(String, nullable=False)
 
     # Relasi
-    mahasiswa = relationship("Mahasiswa", back_populates="logbooks")
+    laporan = relationship("Laporan", back_populates="logbooks")
