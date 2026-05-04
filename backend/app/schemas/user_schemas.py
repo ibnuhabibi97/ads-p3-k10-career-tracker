@@ -1,9 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from typing import Optional, Literal
 
-# ==========================================
-# 1. SCHEMAS UNTUK PARENT (USER)
-# ==========================================
+#SCHEMAS UNTUK PARENT (USER)
 
 class UserBase(BaseModel):
     nama: str
@@ -29,9 +27,7 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ==========================================
-# 2. SCHEMAS UNTUK MAHASISWA
-# ==========================================
+#SCHEMAS UNTUK MAHASISWA
 
 class MahasiswaBase(UserBase):
     nim: str
@@ -55,9 +51,7 @@ class MahasiswaResponse(MahasiswaBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ==========================================
-# 3. SCHEMAS UNTUK DOSEN
-# ==========================================
+# SCHEMAS UNTUK DOSEN
 
 class DosenBase(UserBase):
     nip: str
