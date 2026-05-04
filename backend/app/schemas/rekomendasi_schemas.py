@@ -1,16 +1,21 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import date
+from typing import Optional
 
 class SuratRekomendasiBase(BaseModel):
-    isi_surat: str
+    dokumen_surat: str
 
 class SuratRekomendasiCreate(SuratRekomendasiBase):
     mahasiswa_id: int
+    dosen_id: int
+
+class SuratRekomendasiUpdate(BaseModel):
+    dokumen_surat: Optional[str] = None
+    status_surat: Optional[str] = None
 
 class SuratRekomendasiResponse(SuratRekomendasiBase):
-    id_surat: int
+    surat_id: int
     mahasiswa_id: int
     dosen_id: int
-    tanggal: date
-    
+    status_surat: str
+
     model_config = ConfigDict(from_attributes=True)
