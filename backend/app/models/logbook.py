@@ -15,7 +15,7 @@ class Logbook(Base):
     waktu_selesai = Column(DateTime, nullable=False)
     durasi_kegiatan = Column(Interval, nullable=False) # Durasi dalam jam
     dosen_pembimbing = Column(String, nullable=False)
-    keterangann = Column(String, nullable=False)
+    keterangan = Column(String, nullable=False)
     media = Column(String, nullable=True)
     dokumentasi = Column(String, nullable=True) # Path/URL file
     jenis_kegiatan = Column(String, nullable=False)

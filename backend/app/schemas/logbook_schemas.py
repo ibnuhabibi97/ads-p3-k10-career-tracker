@@ -1,18 +1,42 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import date
 from typing import Optional
+from datetime import date, datetime, timedelta
 
+#Base Schema
 class LogbookBase(BaseModel):
-    kegiatan: str
-    kendala: Optional[str] = None
+    waktu_mulai: datetime
+    waktu_selesai: datetime
+    dosen_pembimbing: str
+    keterangan: str        # Mengikuti penamaan kolom di model (keterangan)
+    media: Optional[str] = None
+    dokumentasi: Optional[str] = None
+    jenis_kegiatan: str
 
+
+#Create Schema (Untuk POST Request)
 class LogbookCreate(LogbookBase):
-    tgl_log: date
+    laporan_id: int
+    mahasiswa_id: int 
 
+
+#Update Schema (Untuk PUT/PATCH Request)
+class LogbookUpdate(BaseModel):
+    waktu_mulai: Optional[datetime] = None
+    waktu_selesai: Optional[datetime] = None
+    dosen_pembimbing: Optional[str] = None
+    keterangan: Optional[str] = None
+    media: Optional[str] = None
+    dokumentasi: Optional[str] = None
+    jenis_kegiatan: Optional[str] = None
+
+
+#Response / In-DB Schema (Untuk Return API)
 class LogbookResponse(LogbookBase):
-    id_logbook: int
+    logbook_id: int
+    laporan_id: int
     mahasiswa_id: int
-    tgl_log: date
-    status_verifikasi: bool
     
+    tanggal_log: date
+    durasi_kegiatan: timedelta 
+
     model_config = ConfigDict(from_attributes=True)
