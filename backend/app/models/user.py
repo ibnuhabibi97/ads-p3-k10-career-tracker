@@ -21,6 +21,7 @@ class Mahasiswa(User):
     __tablename__ = "mahasiswa"
     user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
     nim = Column(String, unique=True, index=True, nullable=False)
+    fakultas = Column(String, nullable=False)
     prodi = Column(String, nullable=False)
 
     __mapper_args__ = {"polymorphic_identity": "mahasiswa"}
