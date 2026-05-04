@@ -6,14 +6,13 @@ import datetime
 class Pendaftaran(Base):
     __tablename__ = "pendaftaran"
 
-    id_pendaftaran = Column(Integer, primary_key=True, index=True)
+    pendaftaran_id = Column(Integer, primary_key=True, index=True)
     mahasiswa_id = Column(Integer, ForeignKey("mahasiswa.user_id"), nullable=False)
-    lowongan_id = Column(Integer, ForeignKey("lowongan.id_lowongan"), nullable=False)
+    lowongan_id = Column(Integer, ForeignKey("lowongan.lowongan_id"), nullable=False)
     
-    tgl_daftar = Column(Date, default=datetime.date.today)
+    tanggal_daftar = Column(Date, default=datetime.date.today)
     dokumen_cv = Column(String, nullable=False) # Menyimpan path/URL file
-    status_seleksi = Column(Boolean, default=False)
-    keterangan = Column(String, default="Pending Review")
+    status_seleksi = Column(String, default="Pending Review") # Contoh: Pending Review, Diterima, Ditolak
 
     # Relasi
     mahasiswa = relationship("Mahasiswa", back_populates="pendaftaran")
