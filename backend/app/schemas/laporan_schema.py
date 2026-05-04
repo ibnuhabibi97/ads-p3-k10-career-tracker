@@ -10,10 +10,8 @@ class LaporanBase(BaseModel):
 
 #Create Schema (Untuk POST Request oleh Mahasiswa)
 class LaporanCreate(LaporanBase):
-    mahasiswa_id: int 
-    # Catatan: Dalam praktiknya di FastAPI, mahasiswa_id seringkali 
-    # tidak perlu dikirim via body JSON, melainkan diambil dari 
-    # token JWT user yang sedang login untuk mencegah pemalsuan ID.
+    mahasiswa_id: int  
+
 
 
 #Update Schema (Untuk PUT/PATCH Request)
