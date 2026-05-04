@@ -1,19 +1,23 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import date
 from typing import Optional
+from datetime import date
 
 class PendaftaranBase(BaseModel):
     dokumen_cv: str
 
 class PendaftaranCreate(PendaftaranBase):
-    id_lowongan: int
-
-class PendaftaranResponse(PendaftaranBase):
-    id_pendaftaran: int
     mahasiswa_id: int
     lowongan_id: int
-    tgl_daftar: date
-    status_seleksi: bool
-    keterangan: str
-    
+
+class PendaftaranUpdate(BaseModel):
+    dokumen_cv: Optional[str] = None
+    status_seleksi: Optional[str] = None
+
+class PendaftaranResponse(PendaftaranBase):
+    pendaftaran_id: int
+    mahasiswa_id: int
+    lowongan_id: int
+    tanggal_daftar: date
+    status_seleksi: str
+
     model_config = ConfigDict(from_attributes=True)
