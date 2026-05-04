@@ -6,11 +6,11 @@ import datetime
 class Laporan(Base):
     __tablename__ = "laporan"
 
-    id_laporan = Column(Integer, primary_key=True, index=True)
+    laporan_id = Column(Integer, primary_key=True, index=True)
     mahasiswa_id = Column(Integer, ForeignKey("mahasiswa.user_id"), nullable=False)
     dosen_id = Column(Integer, ForeignKey("dosen.user_id"), nullable=True)
     
-    status = Column(String, default="Menunggu Nilai") # Menunggu Nilai / Telah Dinilai
+    status = Column(String, default="Pending") # Menunggu Nilai / Telah Dinilai
     nilai = Column(Integer, nullable=True)
     tanggal_lapor = Column(Date, default=datetime.date.today)
     catatan = Column(String, nullable=True)
