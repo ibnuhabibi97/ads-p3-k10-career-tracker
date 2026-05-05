@@ -16,6 +16,8 @@ class User(Base):
         "polymorphic_on": role,
         "polymorphic_identity": "user",
     }
+    # Relasi ke entitas lain
+    notifikasi = relationship("Notifikasi", back_populates="user")
 
 class Mahasiswa(User):
     __tablename__ = "mahasiswa"
@@ -28,7 +30,6 @@ class Mahasiswa(User):
 
     # Relasi ke entitas lain
     pendaftaran = relationship("Pendaftaran", back_populates="mahasiswa")
-    logbooks = relationship("Logbook", back_populates="mahasiswa")
     laporans = relationship("Laporan", back_populates="mahasiswa")
     surat_rekomendasi = relationship("SuratRekomendasi", back_populates="mahasiswa")
 
