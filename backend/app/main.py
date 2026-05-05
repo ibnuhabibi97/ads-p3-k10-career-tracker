@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.api.v1.routers import lowongan_router
 from app.db.database import engine
-from app.models.base import Base
+from app.models import Base
 
 
 app = FastAPI(
