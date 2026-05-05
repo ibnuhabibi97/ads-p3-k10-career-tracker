@@ -1,3 +1,4 @@
 -r requirements.txt
+# --- Testing ---
 pytest
-httpx
+httpx<0.28.0
