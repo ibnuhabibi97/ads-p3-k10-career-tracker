@@ -89,3 +89,11 @@ class StaffResponse(StaffBase):
     role: Literal["staff"]
 
     model_config = ConfigDict(from_attributes=True)
+
+#Schema untuk forget password
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password_baru: str
