@@ -67,6 +67,45 @@ def test_get_lowongan_aktif_positive():
     for item in data:
         assert item["is_active"] is True
 
+def test_search_lowongan_positive_perusahaan():
+    keyword = "Nusantara"
+    response = client.get(f"{PREFIX}/?q={keyword}")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    
+    # Memastikan kata kunci ada di salah satu hasil perusahaan
+    match_found = any(keyword.lower() in item["perusahaan"].lower() for item in data)
+    assert match_found is True
+
+def test_search_lowongan_positive_judul_posisi():
+    keyword = "backend developer"
+    response = client.get(f"{PREFIX}/?q={keyword}")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    
+    # Memastikan kata kunci ada di salah satu hasil judul_posisi
+    match_found = any(keyword.lower() in item["judul_posisi"].lower() for item in data)
+    assert match_found is True
+
+def test_search_lowongan_negative_not_found():
+    keyword = "PosisiGaibAtauPerusahaanFiktif"
+    response = client.get(f"{PREFIX}/?q={keyword}")
+    
+    # Ekspektasi statusnya adalah 200 (Pencarian berhasil dieksekusi)
+    assert response.status_code == 200
+
+    data = response.json()
+    # Memastikan hasilnya adalah list (array)
+    assert isinstance(data, list)
+    # Memastikan list tersebut kosong (karena datanya memang tidak ada)
+    assert len(data) == 0
+
 def test_get_lowongan_by_id_positive():
     response = client.get(f"{PREFIX}/{test_lowongan_id}")
     assert response.status_code == 200

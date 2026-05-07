@@ -11,10 +11,7 @@ router = APIRouter(
     tags=["Lowongan Magang"]
 )
 
-@router.get("/", response_model=List[LowonganResponse])
-def get_all_lowongan(db: Session = Depends(get_db)):
-    service = LowonganService(db)
-    return service.ambil_semua_lowongan()
+
 
 @router.get("/aktif", response_model=List[LowonganResponse])
 def get_lowongan_aktif(db: Session = Depends(get_db)):
