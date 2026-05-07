@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -22,17 +22,21 @@ class UserService:
 
     # --- Helper Methods ---
     def verifikasi_password(self, plain_password, hashed_password):
-        return pwd_context.verify(plain_password, hashed_password)
+        teks_password = str(plain_password)[:70]
+        return pwd_context.verify(teks_password, hashed_password)
 
-    def get_password_hash(self, password):
-        return pwd_context.hash(password)
+    def get_password_hash(self,password: str) -> str:
+    # Menambahkan [:72] untuk memotong string secara manual
+    # guna mencegah error limitasi 72-byte dari Bcrypt
+        teks_password = str(password)[:70]
+        return pwd_context.hash(teks_password)
 
     def buat_access_token(self, data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
         
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
@@ -143,3 +147,16 @@ class UserService:
         self.repo.db.commit()
         
         return {"message": "Password berhasil di-reset. Silakan login kembali."}
+    def ubah_password(self, username_sekarang: str, data_password): # data_password dari ChangePasswordRequest
+        user = self.repo.get_by_username(username_sekarang)
+        if not user:
+            raise HTTPException(status_code=404, detail="User tidak ditemukan")
+
+        if not self.verifikasi_password(data_password.password_lama, user.password):
+            raise HTTPException(status_code=400, detail="Password lama salah")
+
+        hashed_password_baru = self.get_password_hash(data_password.password_baru)
+        user.password = hashed_password_baru
+        self.repo.db.commit()
+        
+        return {"message": "Password berhasil diubah"}
