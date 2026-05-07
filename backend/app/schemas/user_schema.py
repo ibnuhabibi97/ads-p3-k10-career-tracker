@@ -97,3 +97,12 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     password_baru: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: str
+
+class ChangePasswordRequest(BaseModel):
+    password_lama: str
+    password_baru: str
