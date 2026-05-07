@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.db.database import get_db
 from app.schemas.lowongan_schema import LowonganCreate, LowonganUpdate, LowonganResponse
@@ -25,6 +25,17 @@ def get_lowongan_aktif(db: Session = Depends(get_db)):
 def get_lowongan_by_id(lowongan_id: int, db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.ambil_lowongan_by_id(lowongan_id)
+
+@router.get("/", response_model=List[LowonganResponse])
+def get_all_lowongan(q: Optional[str] = None, db: Session = Depends(get_db)):
+    service = LowonganService(db)
+    
+    # Jika ada parameter 'q' (pencarian), gunakan fungsi cari
+    if q:
+        return service.cari_lowongan(q)
+    
+    # Jika tidak ada parameter pencarian, kembalikan semua data
+    return service.ambil_semua_lowongan()
 
 @router.post("/", response_model=LowonganResponse, status_code=201)
 def create_lowongan(lowongan: LowonganCreate, db: Session = Depends(get_db)):
