@@ -13,37 +13,12 @@ from app.schemas.user_schema import (
 )
 from app.services.auth_service import UserService
 from app.core.config import settings
+from app.core.security import get_current_user
 
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
-
-
-# Sesuaikan '/api/v1/auth/login' jika prefix utamamu berbeda
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
-
-#Dependency untuk Mengamankan Endpoint
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    """
-    Fungsi ini akan memvalidasi token JWT.
-    Jika token valid, fungsi akan mengembalikan username dari user yang sedang login.
-    Jika tidak valid/expired, akan melempar error 401 Unauthorized.
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token tidak valid atau sudah kedaluwarsa",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-        
-    return username
 
 
 #Endpoint Registrasi
@@ -71,11 +46,13 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
 @router.put("/change-password")
 def change_password(
     data: ChangePasswordRequest,
-    current_username: str = Depends(get_current_user), # Endpoint dilindungi oleh fungsi ini
+    # Perhatikan: current_user berbentuk dict {"username": ..., "role": ...}
+    current_user: dict = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
     service = UserService(db)
-    return service.ubah_password(current_username, data)
+    # Lempar value dari key "username" ke service
+    return service.ubah_password(current_user["username"], data)
 
 
 #Endpoint Lupa Password (Request Link Email)
