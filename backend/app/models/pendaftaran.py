@@ -12,7 +12,7 @@ class Pendaftaran(Base):
     
     tanggal_daftar = Column(Date, default=datetime.date.today)
     dokumen_cv = Column(String, nullable=False) # Menyimpan path/URL file
-    dokumen_surat_rekomendasi = Column(String, nullable=True) # Menyimpan path/URL file
+    dokumen_surat_rekomendasi = Column(String, nullable=False) # Menyimpan path/URL file
     status_seleksi = Column(String, default="Pending Review") # Contoh: Pending Review, Diterima, Ditolak
 
     # Relasi
