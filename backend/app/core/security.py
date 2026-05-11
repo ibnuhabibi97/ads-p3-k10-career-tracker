@@ -43,17 +43,21 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        
+        #Ekstrak id dari token JWT
         username: str = payload.get("sub")
         role: str = payload.get("role")
+        user_id: int = payload.get("id") # Tambahan baru
         
-        if username is None or role is None:
+        #Pastikan user_id juga tidak kosong
+        if username is None or role is None or user_id is None:
             raise credentials_exception
             
     except JWTError:
         raise credentials_exception
         
-    # Mengembalikan dictionary berisi username dan role
-    return {"username": username, "role": role}
+    #Kembalikan ketiganya dalam dictionary
+    return {"username": username, "role": role, "user_id": user_id}
 
 # --- CLASS DEPENDENCY (OTORISASI) ---
 class RoleChecker:
