@@ -11,7 +11,7 @@ from app.schemas.user_schema import (
     ForgotPasswordRequest, 
     ResetPasswordRequest
 )
-from app.services.auth_service import UserService
+from app.services.auth_service import AuthService
 from app.core.config import settings
 from app.core.security import get_current_user
 
@@ -24,7 +24,7 @@ router = APIRouter(
 #Endpoint Registrasi
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    service = UserService(db)
+    service = AuthService(db)
     # Menyembunyikan objek user yang di-return atau bisa dibuat response model khusus
     user = service.registrasi_user(user_data)
     return {"message": "Registrasi berhasil", "username": user.username}
@@ -38,7 +38,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     Input yang diterima berupa Form Data (x-www-form-urlencoded), BUKAN JSON.
     Wajib berisi parameter 'username' dan 'password'.
     """
-    service = UserService(db)
+    service = AuthService(db)
     return service.login_user(form_data.username, form_data.password)
 
 
@@ -50,7 +50,7 @@ def change_password(
     current_user: dict = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
-    service = UserService(db)
+    service = AuthService(db)
     # Lempar value dari key "username" ke service
     return service.ubah_password(current_user["username"], data)
 
@@ -58,7 +58,7 @@ def change_password(
 #Endpoint Lupa Password (Request Link Email)
 @router.post("/forgot-password")
 async def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    service = UserService(db)
+    service = AuthService(db)
     # Harus menggunakan await karena proses kirim email berjalan secara asinkron
     return await service.lupa_password(data.email)
 
@@ -66,5 +66,5 @@ async def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get
 #Endpoint Reset Password (Melalui Token Email)
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    service = UserService(db)
+    service = AuthService(db)
     return service.reset_password(data)
