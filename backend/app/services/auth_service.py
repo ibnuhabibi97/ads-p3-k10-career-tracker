@@ -41,12 +41,13 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
             )
 
         # Panggil fungsi token dari security.py (tanpa 'self.')
-        access_token = buat_access_token(data={"sub": user.username, "role": user.role})
+        access_token = buat_access_token(data={"sub": user.username, "role": user.role, "id": user.user_id})
 
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": user.role
+            "role": user.role,
+            "user_id": user.user_id
         }
 
     def ubah_password(self, username_sekarang: str, data_password):
