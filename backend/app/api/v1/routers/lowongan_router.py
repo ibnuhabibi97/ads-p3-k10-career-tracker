@@ -1,42 +1,51 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.db.database import get_db
 from app.schemas.lowongan_schema import LowonganCreate, LowonganUpdate, LowonganResponse
 from app.services.lowongan_service import LowonganService
+from app.core.security import RoleChecker
 
 router = APIRouter(
     prefix="/lowongan",
     tags=["Lowongan Magang"]
 )
 
-@router.get("/", response_model=List[LowonganResponse])
-def get_all_lowongan(db: Session = Depends(get_db)):
-    service = LowonganService(db)
-    return service.ambil_semua_lowongan()
+hanya_staff = RoleChecker(["staff"])
+semua_user_terdaftar = RoleChecker(["staff", "dosen", "mahasiswa"])
 
-@router.get("/aktif", response_model=List[LowonganResponse])
+@router.get("/aktif", response_model=List[LowonganResponse], dependencies=[Depends(semua_user_terdaftar)])
 def get_lowongan_aktif(db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.ambil_lowongan_aktif()
 
-@router.get("/{lowongan_id}", response_model=LowonganResponse)
+@router.get("/{lowongan_id}", response_model=LowonganResponse, dependencies=[Depends(semua_user_terdaftar)])
 def get_lowongan_by_id(lowongan_id: int, db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.ambil_lowongan_by_id(lowongan_id)
 
-@router.post("/", response_model=LowonganResponse, status_code=201)
+@router.get("/", response_model=List[LowonganResponse], dependencies=[Depends(semua_user_terdaftar)])
+def get_all_lowongan(q: Optional[str] = None, db: Session = Depends(get_db)):
+    service = LowonganService(db)
+    # Jika ada parameter 'q' (pencarian), gunakan fungsi cari
+    if q:
+        return service.cari_lowongan(q)
+    
+    # Jika tidak ada parameter pencarian, kembalikan semua data
+    return service.ambil_semua_lowongan()
+
+@router.post("/", response_model=LowonganResponse, status_code=201, dependencies=[Depends(hanya_staff)])
 def create_lowongan(lowongan: LowonganCreate, db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.tambah_lowongan(lowongan)
 
-@router.put("/{lowongan_id}", response_model=LowonganResponse)
+@router.put("/{lowongan_id}", response_model=LowonganResponse, dependencies=[Depends(hanya_staff)])
 def update_lowongan(lowongan_id: int, lowongan: LowonganUpdate, db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.ubah_lowongan(lowongan_id, lowongan)
 
-@router.delete("/{lowongan_id}")
+@router.delete("/{lowongan_id}", dependencies=[Depends(hanya_staff)])
 def delete_lowongan(lowongan_id: int, db: Session = Depends(get_db)):
     service = LowonganService(db)
     return service.hapus_lowongan(lowongan_id)

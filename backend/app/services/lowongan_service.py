@@ -18,6 +18,9 @@ class LowonganService:
         if not lowongan:
             raise HTTPException(status_code=404, detail="Data lowongan tidak ditemukan")
         return lowongan
+    
+    def cari_lowongan(self, keyword: str):
+        return self.repo.search(keyword)
 
     def tambah_lowongan(self, data: LowonganCreate):
         return self.repo.create(data)

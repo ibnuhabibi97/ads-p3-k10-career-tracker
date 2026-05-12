@@ -3,15 +3,22 @@ from typing import Optional, Literal
 
 #SCHEMAS UNTUK PARENT (USER)
 
+# SCHEMAS UNTUK PARENT (USER)
 class UserBase(BaseModel):
     nama: str
     username: str
     email: EmailStr
-    # 'role' tidak dimasukkan ke sini agar bisa di-override secara spesifik di child
 
 class UserCreate(UserBase):
     password: str
-    role: str # Untuk parent, role bisa apa saja
+    role: str
+    
+    # TAMBAHAN: Field opsional agar data tidak dibuang oleh Pydantic
+    # saat mendaftar lewat endpoint general /auth/register
+    nim: Optional[str] = None
+    fakultas: Optional[str] = None
+    prodi: Optional[str] = None
+    nip: Optional[str] = None
 
 class UserUpdate(BaseModel):
     nama: Optional[str] = None
@@ -89,3 +96,20 @@ class StaffResponse(StaffBase):
     role: Literal["staff"]
 
     model_config = ConfigDict(from_attributes=True)
+
+#Schema untuk forget password
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password_baru: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: str
+
+class ChangePasswordRequest(BaseModel):
+    password_lama: str
+    password_baru: str
