@@ -1,4 +1,3 @@
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.models.lowongan import Lowongan
 from app.schemas.lowongan_schema import LowonganCreate, LowonganUpdate
@@ -23,17 +22,7 @@ class LowonganRepository:
         self.db.commit()
         self.db.refresh(db_lowongan)
         return db_lowongan
-    
-    def search(self, keyword: str):
-        search_pattern = f"%{keyword}%"
-        return self.db.query(Lowongan).filter(
-            or_(
-                Lowongan.judul_posisi.ilike(search_pattern),
-                Lowongan.perusahaan.ilike(search_pattern)
-            ),
-            Lowongan.is_active == True #Hanya mencari lowongan yang masih aktif
-        ).all()
-    
+
     def update(self, lowongan_id: int, lowongan_data: LowonganUpdate):
         db_lowongan = self.get_by_id(lowongan_id)
         if db_lowongan:
