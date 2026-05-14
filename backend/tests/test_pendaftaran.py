@@ -1,8 +1,35 @@
 import pytest
-from fastapi.testclient import TestClient
+import asyncio
+import httpx
+from httpx import ASGITransport
 from app.main import app
 
-client = TestClient(app)
+transport = ASGITransport(app=app)
+_async_client = httpx.AsyncClient(transport=transport, base_url="http://testserver")
+
+def _run(coro):
+    return asyncio.run(coro)
+
+class SyncAsyncClient:
+    def __init__(self, async_client):
+        self._client = async_client
+
+    def get(self, *args, **kwargs):
+        return _run(self._client.get(*args, **kwargs))
+
+    def post(self, *args, **kwargs):
+        return _run(self._client.post(*args, **kwargs))
+
+    def put(self, *args, **kwargs):
+        return _run(self._client.put(*args, **kwargs))
+
+    def delete(self, *args, **kwargs):
+        return _run(self._client.delete(*args, **kwargs))
+
+    def patch(self, *args, **kwargs):
+        return _run(self._client.patch(*args, **kwargs))
+
+client = SyncAsyncClient(_async_client)
 PREFIX = "/api/v1"
 
 # Variabel global

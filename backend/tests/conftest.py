@@ -1,6 +1,10 @@
 import sys
 import os
 import pytest
+import asyncio
+import atexit
+import httpx
+from httpx import ASGITransport
 
 # Mengarahkan Python untuk melihat folder root 'backend'
 # Ini memperbaiki ModuleNotFoundError: No module named 'app'
@@ -11,6 +15,40 @@ from app.db.database import SessionLocal
 from app.models.user import User
 from app.models.lowongan import Lowongan
 from app.models.pendaftaran import Pendaftaran
+
+from app.main import app
+
+transport = ASGITransport(app=app)
+_async_client = httpx.AsyncClient(transport=transport, base_url="http://testserver")
+
+def _run(coro):
+    return asyncio.run(coro)
+
+class SyncAsyncClient:
+    def __init__(self, async_client):
+        self._client = async_client
+
+    def get(self, *args, **kwargs):
+        return _run(self._client.get(*args, **kwargs))
+
+    def post(self, *args, **kwargs):
+        return _run(self._client.post(*args, **kwargs))
+
+    def put(self, *args, **kwargs):
+        return _run(self._client.put(*args, **kwargs))
+
+    def delete(self, *args, **kwargs):
+        return _run(self._client.delete(*args, **kwargs))
+
+    def patch(self, *args, **kwargs):
+        return _run(self._client.patch(*args, **kwargs))
+
+    def close(self):
+        return _run(self._client.aclose())
+
+client_wrapper = SyncAsyncClient(_async_client)
+
+atexit.register(lambda: _run(_async_client.aclose()))
 
 TEST_USERNAMES = [
     "mhspelamar_baru",
@@ -108,7 +146,49 @@ def cleanup_test_data():
 
 @pytest.fixture
 def client():
-    """Fixture untuk membuat test client FastAPI."""
-    from fastapi.testclient import TestClient
-    from app.main import app
-    yield TestClient(app)
+    """Fixture untuk membuat test client FastAPI menggunakan WSGITransport."""
+    return client_wrapper
+
+@pytest.fixture
+def staff_token(client):
+    # Register staff user
+    payload = {
+        "nama": "Staff HR",
+        "username": "staffhr",
+        "email": "staffhr@apps.ipb.ac.id",
+        "password": "password123",
+        "role": "staff",
+        "nip": "123456789"
+    }
+    client.post("/api/v1/auth/register", json=payload)
+    
+    # Login
+    login_payload = {
+        "username": "staffhr",
+        "password": "password123"
+    }
+    response = client.post("/api/v1/auth/login", data=login_payload)
+    return response.json()["access_token"]
+
+@pytest.fixture
+def mahasiswa_token(client):
+    # Register mahasiswa user
+    payload = {
+        "nama": "Mahasiswa Test",
+        "username": "mhspelamar_test",
+        "email": "mhspelamar_test@apps.ipb.ac.id",
+        "password": "password123",
+        "role": "mahasiswa",
+        "nim": "G64180002",
+        "fakultas": "Teknologi Informasi",
+        "prodi": "Informatika"
+    }
+    client.post("/api/v1/auth/register", json=payload)
+    
+    # Login
+    login_payload = {
+        "username": "mhspelamar_test",
+        "password": "password123"
+    }
+    response = client.post("/api/v1/auth/login", data=login_payload)
+    return response.json()["access_token"]
