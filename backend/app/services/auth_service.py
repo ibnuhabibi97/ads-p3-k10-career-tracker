@@ -1,5 +1,6 @@
 from datetime import timedelta
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -91,7 +92,7 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
             if username is None or token_type != "reset":
                 raise HTTPException(status_code=400, detail="Token tidak valid")
                 
-        except JWTError:
+        except PyJWTError:
             raise HTTPException(status_code=400, detail="Token tidak valid atau sudah kedaluwarsa")
 
         user = self.repo.get_by_username(username)
