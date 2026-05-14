@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.routers import lowongan_router
 from app.db.database import engine
 from app.models import Base
@@ -10,6 +11,17 @@ app = FastAPI(
     title="Sistem Informasi Magang IPB API",
     description="Backend service untuk sistem pendaftaran dan penilaian magang mahasiswa.",
     version="1.0.0"
+)
+
+
+#Daftarkan CORSMiddleware 
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Daftar origin yang diizinkan
+    allow_credentials=True,      # Mengizinkan pengiriman kredensial (seperti cookies atau header Authorization HTTP)
+    allow_methods=["*"],         # Mengizinkan semua HTTP Method (GET, POST, PUT, DELETE, PATCH, OPTIONS)
+    allow_headers=["*"],         # Mengizinkan semua header
 )
 
 # Mendaftarkan router
