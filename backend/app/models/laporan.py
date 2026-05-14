@@ -13,7 +13,7 @@ class Laporan(Base):
     status = Column(String, default="Pending") # Menunggu Nilai / Telah Dinilai
     nilai = Column(Integer, nullable=True)
     tanggal_lapor = Column(Date, default=datetime.date.today)
-    catatan = Column(String, nullable=True)
+    catatan = Column(String, nullable=True) #Catatan dari Dosen ke mahasiswa (misal: "Perbaiki bagian x")
     dokumen_laporan = Column(String, nullable=False) # Path/URL file
 
     # Relasi

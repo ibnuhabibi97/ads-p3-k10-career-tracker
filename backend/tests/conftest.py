@@ -5,6 +5,8 @@ import asyncio
 import atexit
 import httpx
 from httpx import ASGITransport
+from jwt import decode
+import hashlib
 
 # Mengarahkan Python untuk melihat folder root 'backend'
 # Ini memperbaiki ModuleNotFoundError: No module named 'app'
@@ -15,8 +17,16 @@ from app.db.database import SessionLocal
 from app.models.user import User
 from app.models.lowongan import Lowongan
 from app.models.pendaftaran import Pendaftaran
+from app.models.laporan import Laporan
 
 from app.main import app
+from app.core.config import settings
+
+def _jwt_secret_key() -> str:
+    secret_key = str(settings.SECRET_KEY)
+    if len(secret_key.encode("utf-8")) < 32:
+        return hashlib.sha256(secret_key.encode("utf-8")).hexdigest()
+    return secret_key
 
 transport = ASGITransport(app=app)
 _async_client = httpx.AsyncClient(transport=transport, base_url="http://testserver")
@@ -56,6 +66,8 @@ TEST_USERNAMES = [
     "mhspelamar",
     "staffhr",
     "ibnutester",
+    "mhspelamar_test",
+    "dosenpembimbing",
 ]
 
 TEST_EMAIL_SUFFIX = "@apps.ipb.ac.id"
@@ -101,6 +113,8 @@ def cleanup_test_data():
 
         if user_ids:
             db.query(Pendaftaran).filter(Pendaftaran.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(Laporan).filter(Laporan.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(Laporan).filter(Laporan.dosen_id.in_(user_ids)).delete(synchronize_session=False)
 
         deleted_users = 0
         for user in users:
@@ -192,3 +206,76 @@ def mahasiswa_token(client):
     }
     response = client.post("/api/v1/auth/login", data=login_payload)
     return response.json()["access_token"]
+
+@pytest.fixture
+def dosen_token(client):
+    # Register dosen user
+    payload = {
+        "nama": "Dosen Test",
+        "username": "dosenpembimbing",
+        "email": "dosenpembimbing@apps.ipb.ac.id",
+        "password": "password123",
+        "role": "dosen",
+        "nip": "198501012015121001"
+    }
+    client.post("/api/v1/auth/register", json=payload)
+    
+    # Login
+    login_payload = {
+        "username": "dosenpembimbing",
+        "password": "password123"
+    }
+    response = client.post("/api/v1/auth/login", data=login_payload)
+    return response.json()["access_token"]
+
+@pytest.fixture
+def mahasiswa_id(client):
+    # Register mahasiswa user
+    payload = {
+        "nama": "Mahasiswa Test",
+        "username": "mhspelamar_test",
+        "email": "mhspelamar_test@apps.ipb.ac.id",
+        "password": "password123",
+        "role": "mahasiswa",
+        "nim": "G64180002",
+        "fakultas": "Teknologi Informasi",
+        "prodi": "Informatika"
+    }
+    client.post("/api/v1/auth/register", json=payload)
+    
+    # Login
+    login_payload = {
+        "username": "mhspelamar_test",
+        "password": "password123"
+    }
+    response = client.post("/api/v1/auth/login", data=login_payload)
+    token = response.json()["access_token"]
+    
+    # Decode token to get user_id
+    payload = decode(token, _jwt_secret_key(), algorithms=["HS256"])
+    return int(payload["id"])
+
+@pytest.fixture
+def dosen_id(client):
+    # Register dosen user
+    payload = {
+        "nama": "Dosen Test",
+        "username": "dosenpembimbing",
+        "email": "dosenpembimbing@apps.ipb.ac.id",
+        "password": "password123",
+        "role": "dosen",
+        "nip": "198501012015121001"
+    }
+    client.post("/api/v1/auth/register", json=payload)
+    
+    # Login
+    login_payload = {
+        "username": "dosenpembimbing",
+        "password": "password123"
+    }
+    response = client.post("/api/v1/auth/login", data=login_payload)
+    token = response.json()["access_token"]
+    
+    # Decode token to get user_id
+    payload = decode(token, _jwt_secret_key(), algorithms=["HS256"])
+    return int(payload["id"])
