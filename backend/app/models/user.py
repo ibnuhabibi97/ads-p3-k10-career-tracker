@@ -32,6 +32,7 @@ class Mahasiswa(User):
     pendaftaran = relationship("Pendaftaran", back_populates="mahasiswa")
     laporans = relationship("Laporan", back_populates="mahasiswa")
     surat_rekomendasi = relationship("SuratRekomendasi", back_populates="mahasiswa")
+    logbooks = relationship("Logbook", back_populates="mahasiswa")
 
 class Dosen(User):
     __tablename__ = "dosen"
@@ -43,6 +44,7 @@ class Dosen(User):
     # Relasi ke entitas lain
     laporans_dinilai = relationship("Laporan", back_populates="dosen")
     surat_diberikan = relationship("SuratRekomendasi", back_populates="dosen")
+    logbooks_pembimbing = relationship("Logbook", back_populates="dosen")
 
 class Staff(User):
     __tablename__ = "staff"
