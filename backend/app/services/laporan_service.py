@@ -35,54 +35,63 @@ class LaporanService:
         """Ambil semua laporan yang dinilai oleh dosen tertentu"""
         return self.repo.get_by_dosen_id(dosen_id)
 
-    def tambah_laporan(self, data: LaporanCreate):
+    def tambah_laporan(self, data: LaporanCreate, user_id: int):
         """Buat laporan baru"""
-        return self.repo.create(data)
+        data_dict = data.model_dump()
+        data_dict["mahasiswa_id"] = user_id # Enforce user_id dari token
+        return self.repo.create(data_dict)
 
-    def ubah_laporan(self, laporan_id: int, data: LaporanUpdate):
+    def ubah_laporan(self, laporan_id: int, data: LaporanUpdate, user_id: int):
         """Update laporan oleh mahasiswa (hanya dokumen)"""
-        laporan = self.repo.update(laporan_id, data)
+        laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
             raise HTTPException(status_code=404, detail="Data laporan gagal diubah karena tidak ditemukan")
-        return laporan
+            
+        if laporan.mahasiswa_id != user_id:
+            raise HTTPException(status_code=403, detail="Akses ditolak. Anda bukan pemilik laporan ini.")
+            
+        return self.repo.update(laporan_id, data.model_dump(exclude_unset=True))
 
-    def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate):
+    def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate, dosen_id: int):
         """Update nilai laporan oleh dosen (dengan optional catatan)"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
             raise HTTPException(status_code=404, detail="Data laporan tidak ditemukan")
         
         # Update dengan data penilaian
-        laporan.nilai = data.nilai
-        laporan.status = data.status
-        laporan.dosen_id = data.dosen_id
-        
-        # Update catatan jika diberikan
+        update_data = {
+            "nilai": data.nilai,
+            "status": data.status,
+            "dosen_id": dosen_id
+        }
         if data.catatan:
-            laporan.catatan = data.catatan
-        
-        self.repo.db.commit()
-        self.repo.db.refresh(laporan)
-        return laporan
+            update_data["catatan"] = data.catatan
+            
+        return self.repo.update(laporan_id, update_data)
 
-    def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate):
+    def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate, dosen_id: int):
         """Update catatan revisi oleh dosen ketika menolak laporan"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
             raise HTTPException(status_code=404, detail="Data laporan tidak ditemukan")
         
         # Update catatan dan status
-        laporan.catatan = data.catatan
-        laporan.status = data.status
-        laporan.dosen_id = data.dosen_id
+        update_data = {
+            "catatan": data.catatan,
+            "status": data.status,
+            "dosen_id": dosen_id
+        }
         
-        self.repo.db.commit()
-        self.repo.db.refresh(laporan)
-        return laporan
+        return self.repo.update(laporan_id, update_data)
 
-    def hapus_laporan(self, laporan_id: int):
+    def hapus_laporan(self, laporan_id: int, user_id: int):
         """Hapus laporan"""
-        berhasil = self.repo.delete(laporan_id)
-        if not berhasil:
+        laporan = self.repo.get_by_id(laporan_id)
+        if not laporan:
             raise HTTPException(status_code=404, detail="Data laporan gagal dihapus karena tidak ditemukan")
+            
+        if laporan.mahasiswa_id != user_id:
+            raise HTTPException(status_code=403, detail="Akses ditolak. Anda bukan pemilik laporan ini.")
+            
+        self.repo.delete(laporan_id)
         return {"message": "Data laporan berhasil dihapus"}
