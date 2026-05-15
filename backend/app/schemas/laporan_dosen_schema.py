@@ -7,7 +7,7 @@ from datetime import date
 class LaporanPenilaianUpdate(BaseModel):
     nilai: int
     status: str  # "Pending", "Telah Dinilai", atau "Ditolak"
-    dosen_id: int
+    dosen_id: Optional[int] = None
     catatan: Optional[str] = None  # Catatan/feedback revisi dari dosen
 
 # Digunakan di endpoint khusus Dosen untuk memberikan catatan revisi saat menolak
@@ -15,4 +15,4 @@ class LaporanPenilaianUpdate(BaseModel):
 class LaporanRevisiDosenUpdate(BaseModel):
     catatan: str  # Catatan revisi/feedback dari dosen
     status: str = "Ditolak"  # Default status ketika ada catatan revisi
-    dosen_id: int
+    dosen_id: Optional[int] = None

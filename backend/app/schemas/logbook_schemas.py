@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 class LogbookBase(BaseModel):
     waktu_mulai: datetime
     waktu_selesai: datetime
-    dosen_pembimbing: str
+    dosen_id: int
     keterangan: str        # Mengikuti penamaan kolom di model (keterangan)
     media: Optional[str] = None
     dokumentasi: Optional[str] = None
@@ -16,14 +16,14 @@ class LogbookBase(BaseModel):
 #Create Schema (Untuk POST Request)
 class LogbookCreate(LogbookBase):
     laporan_id: int
-    mahasiswa_id: int 
+    mahasiswa_id: Optional[int] = None
 
 
 #Update Schema (Untuk PUT/PATCH Request)
 class LogbookUpdate(BaseModel):
     waktu_mulai: Optional[datetime] = None
     waktu_selesai: Optional[datetime] = None
-    dosen_pembimbing: Optional[str] = None
+    dosen_id: Optional[int] = None
     keterangan: Optional[str] = None
     media: Optional[str] = None
     dokumentasi: Optional[str] = None

@@ -9,7 +9,7 @@ class LaporanBase(BaseModel):
 
 #Create Schema (Untuk POST Request oleh Mahasiswa)
 class LaporanCreate(LaporanBase):
-    mahasiswa_id: int  
+    mahasiswa_id: Optional[int] = None
 
 
 #Update Schema (Untuk PUT/PATCH Request oleh Mahasiswa - hanya dokumen)
