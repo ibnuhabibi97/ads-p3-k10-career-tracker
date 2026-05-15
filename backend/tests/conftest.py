@@ -18,6 +18,7 @@ from app.models.user import User
 from app.models.lowongan import Lowongan
 from app.models.pendaftaran import Pendaftaran
 from app.models.laporan import Laporan
+from app.models.logbook import Logbook
 
 from app.main import app
 from app.core.config import settings
@@ -113,6 +114,7 @@ def cleanup_test_data():
 
         if user_ids:
             db.query(Pendaftaran).filter(Pendaftaran.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(Logbook).filter(Logbook.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
             db.query(Laporan).filter(Laporan.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
             db.query(Laporan).filter(Laporan.dosen_id.in_(user_ids)).delete(synchronize_session=False)
 
