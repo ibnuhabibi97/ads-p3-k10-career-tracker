@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from app.models.laporan import Laporan
-from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate
 
 class LaporanRepository:
     def __init__(self, db: Session):
@@ -30,20 +29,18 @@ class LaporanRepository:
         """Ambil semua laporan yang dinilai oleh dosen tertentu"""
         return self.db.query(Laporan).filter(Laporan.dosen_id == dosen_id).all()
 
-    def create(self, laporan_data: LaporanCreate):
+    def create(self, data_dict: dict):
         """Buat laporan baru"""
-        db_laporan = Laporan(**laporan_data.model_dump())
+        db_laporan = Laporan(**data_dict)
         self.db.add(db_laporan)
         self.db.commit()
         self.db.refresh(db_laporan)
         return db_laporan
 
-    def update(self, laporan_id: int, laporan_data: LaporanUpdate):
+    def update(self, laporan_id: int, update_data: dict):
         """Update laporan"""
         db_laporan = self.get_by_id(laporan_id)
         if db_laporan:
-            # exclude_unset=True memastikan hanya field yang dikirim user yang diupdate
-            update_data = laporan_data.model_dump(exclude_unset=True)
             for key, value in update_data.items():
                 setattr(db_laporan, key, value)
             
