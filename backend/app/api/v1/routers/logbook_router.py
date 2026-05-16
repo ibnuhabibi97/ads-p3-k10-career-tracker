@@ -36,7 +36,7 @@ async def create_logbook(
     db: Session = Depends(get_db), 
     current_user: dict = Depends(hanya_mahasiswa)
 ):
-    """Buat logbook baru (input dari mahasiswa, dokumentasi ke Supabase)"""
+    """Buat logbook baru (input dari mahasiswa, dokumentasi ke Supabase folder 'dokumentasi')"""
     public_url = None
     if file_dokumentasi:
         contents = await file_dokumentasi.read()
@@ -44,7 +44,7 @@ async def create_logbook(
             file_data=contents,
             file_name=file_dokumentasi.filename,
             content_type=file_dokumentasi.content_type,
-            folder="logbook"
+            folder="dokumentasi"
         )
 
     # Susun data untuk service
