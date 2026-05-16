@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -7,6 +7,7 @@ from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanResp
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
 from app.services.laporan_service import LaporanService
 from app.core.security import RoleChecker
+from app.core.storage import storage_client
 
 router = APIRouter(
     prefix="/laporan",
@@ -28,7 +29,7 @@ def get_all_laporan(db: Session = Depends(get_db)):
     service = LaporanService(db)
     return service.ambil_semua_laporan()
 
-@router.get("/{laporan_id}", response_model=LaporanResponse, dependencies=[Depends(semua_user_terdaftar)])
+@router.get("/{laporan_id}", response_model=LogbookResponse, dependencies=[Depends(semua_user_terdaftar)])
 def get_laporan_by_id(laporan_id: int, db: Session = Depends(get_db)):
     """Ambil laporan berdasarkan ID"""
     service = LaporanService(db)
@@ -39,10 +40,26 @@ def get_laporan_by_id(laporan_id: int, db: Session = Depends(get_db)):
 # ============================================
 
 @router.post("/", response_model=LaporanResponse, status_code=201)
-def create_laporan(laporan: LaporanCreate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_mahasiswa)):
-    """Buat laporan baru"""
+async def create_laporan(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db), 
+    current_user: dict = Depends(hanya_mahasiswa)
+):
+    """Buat laporan baru (upload file ke Supabase)"""
+    # 1. Upload ke Supabase
+    contents = await file.read()
+    public_url = storage_client.upload(
+        file_data=contents, 
+        file_name=file.filename, 
+        content_type=file.content_type,
+        folder="laporan"
+    )
+    
+    # 2. Simpan ke database melalui service
+    laporan_data = LaporanCreate(dokumen_laporan=public_url)
+    
     service = LaporanService(db)
-    return service.tambah_laporan(laporan, current_user["user_id"])
+    return service.tambah_laporan(laporan_data, current_user["user_id"])
 
 @router.get("/mahasiswa/{mahasiswa_id}", response_model=List[LaporanResponse], dependencies=[Depends(semua_user_terdaftar)])
 def get_laporan_mahasiswa(mahasiswa_id: int, db: Session = Depends(get_db)):

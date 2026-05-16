@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime
 
 from app.db.database import get_db
 from app.schemas.logbook_schemas import LogbookCreate, LogbookUpdate, LogbookResponse
 from app.services.logbook_service import LogbookService
 from app.core.security import RoleChecker
+from app.core.storage import storage_client
 
 router = APIRouter(
     prefix="/logbook",
@@ -22,10 +24,43 @@ semua_user_terdaftar = RoleChecker(["staff", "dosen", "mahasiswa"])
 # ============================================
 
 @router.post("/", response_model=LogbookResponse, status_code=201)
-def create_logbook(logbook: LogbookCreate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_mahasiswa)):
-    """Buat logbook baru (input dari mahasiswa)"""
+async def create_logbook(
+    laporan_id: int = Form(...),
+    dosen_id: int = Form(...),
+    waktu_mulai: datetime = Form(...),
+    waktu_selesai: datetime = Form(...),
+    keterangan: str = Form(...),
+    jenis_kegiatan: str = Form(...),
+    media: Optional[str] = Form(None),
+    file_dokumentasi: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db), 
+    current_user: dict = Depends(hanya_mahasiswa)
+):
+    """Buat logbook baru (input dari mahasiswa, dokumentasi ke Supabase)"""
+    public_url = None
+    if file_dokumentasi:
+        contents = await file_dokumentasi.read()
+        public_url = storage_client.upload(
+            file_data=contents,
+            file_name=file_dokumentasi.filename,
+            content_type=file_dokumentasi.content_type,
+            folder="logbook"
+        )
+
+    # Susun data untuk service
+    logbook_data = LogbookCreate(
+        laporan_id=laporan_id,
+        dosen_id=dosen_id,
+        waktu_mulai=waktu_mulai,
+        waktu_selesai=waktu_selesai,
+        keterangan=keterangan,
+        jenis_kegiatan=jenis_kegiatan,
+        media=media,
+        dokumentasi=public_url
+    )
+
     service = LogbookService(db)
-    return service.tambah_logbook(logbook, current_user["user_id"])
+    return service.tambah_logbook(logbook_data, current_user["user_id"])
 
 # ============================================
 # ENDPOINT FILTER (LEBIH SPESIFIK - HARUS SEBELUM {id})
