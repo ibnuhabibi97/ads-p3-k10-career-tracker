@@ -7,7 +7,7 @@ from app.api.v1.routers import auth_router
 from app.api.v1.routers import pendaftaran_router
 from app.api.v1.routers import laporan_router
 from app.api.v1.routers import logbook_router
-from app.api.v1.routers import dosen_router
+from app.api.v1.routers import rekomendasi_router
 
 
 app = FastAPI(
@@ -33,7 +33,7 @@ app.include_router(auth_router.router, prefix="/api/v1")
 app.include_router(pendaftaran_router.router, prefix="/api/v1")
 app.include_router(laporan_router.router, prefix="/api/v1")
 app.include_router(logbook_router.router, prefix="/api/v1")
-app.include_router(dosen_router.router, prefix="/api/v1")
+app.include_router(rekomendasi_router.router, prefix="/api/v1")
 
 @app.get("/")
 def root():
