@@ -39,3 +39,16 @@ async def kirim_email_reset_password(email_tujuan: str, reset_token: str):
 
     fm = FastMail(conf)
     await fm.send_message(message)
+
+async def kirim_email_notifikasi(email_tujuan: str, subjek: str, pesan_html: str):
+    """
+    Fungsi umum untuk mengirim email notifikasi.
+    """
+    message = MessageSchema(
+        subject=subjek,
+        recipients=[email_tujuan],
+        body=pesan_html,
+        subtype=MessageType.html
+    )
+    fm = FastMail(conf)
+    await fm.send_message(message)

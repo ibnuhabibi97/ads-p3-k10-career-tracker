@@ -8,6 +8,7 @@ Sistem Informasi berbasis API untuk manajemen pendaftaran, pelaporan, dan penila
 - **Pendaftaran Magang**: Mahasiswa dapat melamar lowongan dengan mengunggah CV dan Surat Rekomendasi langsung ke cloud storage.
 - **Logbook Magang**: Pencatatan kegiatan harian mahasiswa magang beserta dokumentasi pendukung.
 - **Laporan Magang**: Mahasiswa mengunggah laporan akhir untuk dinilai oleh Dosen Pembimbing.
+- **Surat Rekomendasi**: Alur pengajuan surat dari mahasiswa ke dosen, dengan sistem tanda tangan digital (upload ulang berkas bertandatangan) dan notifikasi ganda.
 - **Cloud Storage Integration**: Integrasi dengan **Supabase Storage** untuk penyimpanan berkas dokumen secara aman dan terorganisir.
 
 ## 🏗️ Arsitektur Proyek
@@ -37,7 +38,7 @@ Aplikasi ini mengikuti pola arsitektur berlapis:
 - `DELETE /lowongan/{id}` - Menghapus lowongan (Staff only).
 
 ### 📝 Pendaftaran (`/pendaftaran`)
-- `POST /pendaftaran/` - Mendaftar lowongan dengan upload CV & Surat Rekomendasi (Mahasiswa only).
+- `POST /pendaftaran/` - Mendaftar lowongan with upload CV & Surat Rekomendasi (Mahasiswa only).
 - `GET /pendaftaran/saya` - Melihat riwayat lamaran milik sendiri (Mahasiswa only).
 - `PATCH /pendaftaran/{id}/status` - Memperbarui status seleksi lamaran (Staff only).
 
@@ -59,12 +60,19 @@ Aplikasi ini mengikuti pola arsitektur berlapis:
 - `PATCH /laporan/{id}/revisi-dosen` - Memberikan catatan revisi pada laporan (Dosen only).
 - `DELETE /laporan/{id}` - Menghapus laporan (Hanya pemilik).
 
+### ✉️ Surat Rekomendasi (`/surat-rekomendasi`)
+- `POST /surat-rekomendasi/` - Mahasiswa mengajukan surat rekomendasi dengan upload draf (Mahasiswa only).
+- `GET /surat-rekomendasi/mahasiswa/saya` - Melihat daftar pengajuan surat milik sendiri (Mahasiswa only).
+- `GET /surat-rekomendasi/dosen/tinjauan` - Dosen melihat daftar permohonan surat yang masuk (Dosen only).
+- `GET /surat-rekomendasi/{id}` - Detail surat rekomendasi.
+- `PATCH /surat-rekomendasi/{id}/proses` - Dosen menyetujui (dengan upload surat bertanda tangan) atau menolak surat (Dosen only).
+
 ## 📁 Struktur Folder Supabase Storage
 Penyimpanan berkas dikelompokkan secara rapi dalam bucket `lowongan-assets`:
 - `laporan/`: Berkas laporan magang mahasiswa.
 - `dokumentasi/`: Foto/berkas bukti kegiatan harian logbook.
 - `pendaftaran/cv/`: Curriculum Vitae mahasiswa pelamar.
-- `pendaftaran/surat_rekomendasi/`: Surat rekomendasi saat pendaftaran.
+- `pendaftaran/surat_rekomendasi/`: Folder untuk draf dan surat rekomendasi final yang sudah ditandatangani.
 
 ## ⚙️ Cara Menjalankan
 1.  **Clone Repository**.
