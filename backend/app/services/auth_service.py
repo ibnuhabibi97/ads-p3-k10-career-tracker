@@ -4,7 +4,7 @@ from jwt import PyJWTError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.user_repository import UserRepository # Sesuaikan jika namamu auth_repository
+from app.repositories.user_repository import UserRepository 
 from app.schemas.user_schema import UserCreate
 from app.core.config import settings
 
@@ -14,7 +14,7 @@ from app.core.security import get_password_hash, verifikasi_password, buat_acces
 # Import dari email_service untuk fungsi lupa password
 from app.services.email_service import kirim_email_reset_password 
 
-class AuthService: # Pastikan nama class disesuaikan dengan yang di-import router
+class AuthService: 
     def __init__(self, db: Session):
         self.repo = UserRepository(db)
         
@@ -25,15 +25,12 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
         if self.repo.get_by_email(user_data.email):
             raise HTTPException(status_code=400, detail="Email sudah terdaftar")
 
-        # Panggil fungsi hash dari security.py (tanpa 'self.')
         hashed_pwd = get_password_hash(user_data.password)
-        
         return self.repo.create(user_data, hashed_pwd)
 
     def login_user(self, username_input: str, password_input: str):
         user = self.repo.get_by_username(username_input)
         
-        # Panggil fungsi verifikasi dari security.py (tanpa 'self.')
         if not user or not verifikasi_password(password_input, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,13 +38,12 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Panggil fungsi token dari security.py (tanpa 'self.')
-        access_token = buat_access_token(data={"sub": user.username, "role": user.role, "id": user.user_id})
+        access_token = buat_access_token(data={"sub": user.username, "role": user.role.value, "id": user.user_id})
 
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": user.role,
+            "role": user.role.value,
             "user_id": user.user_id
         }
 
@@ -56,14 +52,11 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
         if not user:
             raise HTTPException(status_code=404, detail="User tidak ditemukan")
 
-        # Menggunakan fungsi verifikasi_password dari security.py
         if not verifikasi_password(data_password.password_lama, user.password):
             raise HTTPException(status_code=400, detail="Password lama salah")
 
-        # Menggunakan fungsi hash dari security.py
         hashed_password_baru = get_password_hash(data_password.password_baru)
-        user.password = hashed_password_baru
-        self.repo.db.commit()
+        self.repo.update_password(user.user_id, hashed_password_baru)
         
         return {"message": "Password berhasil diubah"}
 
@@ -73,8 +66,6 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
             return {"message": "Jika email terdaftar, link reset telah dikirim."}
 
         reset_token_expires = timedelta(minutes=15)
-        
-        # Panggil dari security.py
         reset_token = buat_access_token(
             data={"sub": user.username, "type": "reset"}, 
             expires_delta=reset_token_expires
@@ -99,9 +90,7 @@ class AuthService: # Pastikan nama class disesuaikan dengan yang di-import route
         if not user:
             raise HTTPException(status_code=404, detail="User tidak ditemukan")
 
-        # Panggil dari security.py
         hashed_password_baru = get_password_hash(data_reset.password_baru)
-        user.password = hashed_password_baru
-        self.repo.db.commit()
+        self.repo.update_password(user.user_id, hashed_password_baru)
         
         return {"message": "Password berhasil di-reset. Silakan login kembali."}

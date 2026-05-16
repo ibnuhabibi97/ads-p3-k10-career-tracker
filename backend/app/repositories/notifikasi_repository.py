@@ -12,11 +12,14 @@ class NotifikasiRepository:
         self.db.refresh(db_notif)
         return db_notif
 
+    def get_by_id(self, notifikasi_id: int):
+        return self.db.query(Notifikasi).filter(Notifikasi.notifikasi_id == notifikasi_id).first()
+
     def get_by_user(self, user_id: int):
         return self.db.query(Notifikasi).filter(Notifikasi.user_id == user_id).order_by(Notifikasi.notifikasi_id.desc()).all()
 
     def mark_as_read(self, notifikasi_id: int):
-        db_notif = self.db.query(Notifikasi).filter(Notifikasi.notifikasi_id == notifikasi_id).first()
+        db_notif = self.get_by_id(notifikasi_id)
         if db_notif:
             db_notif.is_read = True
             self.db.commit()

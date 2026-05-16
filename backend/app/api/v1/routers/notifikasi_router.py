@@ -4,9 +4,9 @@ from typing import List
 
 from app.db.database import get_db
 from app.schemas.notifikasi_schema import NotifikasiResponse, NotifikasiUpdate
-from app.repositories.notifikasi_repository import NotifikasiRepository
+from app.services.notifikasi_service import NotifikasiService
+from app.api.dependencies import get_notifikasi_service
 from app.core.security import RoleChecker
-from app.models.notifikasi import Notifikasi
 
 router = APIRouter(
     prefix="/notifikasi",
@@ -17,27 +17,17 @@ semua_user = RoleChecker(["mahasiswa", "dosen", "staff"])
 
 @router.get("/", response_model=List[NotifikasiResponse])
 def ambil_notifikasi_saya(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(semua_user)
+    current_user: dict = Depends(semua_user),
+    service: NotifikasiService = Depends(get_notifikasi_service)
 ):
     """Mengambil semua notifikasi milik user yang sedang login."""
-    repo = NotifikasiRepository(db)
-    return repo.get_by_user(current_user["user_id"])
+    return service.ambil_notifikasi_user(current_user["user_id"])
 
 @router.patch("/{notifikasi_id}/read", response_model=NotifikasiResponse)
 def tandai_dibaca(
     notifikasi_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(semua_user)
+    current_user: dict = Depends(semua_user),
+    service: NotifikasiService = Depends(get_notifikasi_service)
 ):
     """Menandai notifikasi tertentu sebagai sudah dibaca."""
-    repo = NotifikasiRepository(db)
-    
-    db_notif = db.query(Notifikasi).filter(Notifikasi.notifikasi_id == notifikasi_id).first()
-    
-    if not db_notif:
-        raise HTTPException(status_code=404, detail="Notifikasi tidak ditemukan")
-    if db_notif.user_id != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Akses ditolak.")
-        
-    return repo.mark_as_read(notifikasi_id)
+    return service.tandai_dibaca(notifikasi_id, current_user["user_id"])

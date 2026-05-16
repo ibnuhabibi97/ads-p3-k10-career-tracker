@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.repositories.pendaftaran_repository import PendaftaranRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranUpdate
+from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranUpdate, PendaftaranStatus
 from app.services.email_service import kirim_email_notifikasi
 
 class PendaftaranService:
@@ -24,6 +24,7 @@ class PendaftaranService:
         # Susun data untuk disimpan
         data_dict = pendaftaran_data.model_dump()
         data_dict["mahasiswa_id"] = mahasiswa_id
+        data_dict["status_seleksi"] = PendaftaranStatus.PENDING
         
         db_pendaftaran = self.repo.create(data_dict)
 
@@ -58,7 +59,7 @@ class PendaftaranService:
 
         return db_pendaftaran
 
-    def update_status_seleksi(self, pendaftaran_id: int, status_baru: str):
+    async def update_status_seleksi(self, pendaftaran_id: int, status_baru: PendaftaranStatus):
         # Cari data pendaftaran
         db_pendaftaran = self.repo.get_by_id(pendaftaran_id)
         if not db_pendaftaran:
@@ -66,4 +67,35 @@ class PendaftaranService:
 
         # Update hanya field status_seleksi
         update_data = {"status_seleksi": status_baru}
-        return self.repo.update(pendaftaran_id, update_data)
+        updated = self.repo.update(pendaftaran_id, update_data)
+
+        # --- NOTIFIKASI KE MAHASISWA ---
+        mahasiswa = self.user_repo.get_by_id(db_pendaftaran.mahasiswa_id)
+        if mahasiswa:
+            status_label = status_baru.value
+            self.notif_repo.create({
+                "user_id": mahasiswa.user_id,
+                "isi_notifikasi": f"Status pendaftaran magang Anda telah diperbarui menjadi: {status_label}.",
+                "target_url": "/mahasiswa/pendaftaran/saya"
+            })
+
+            pesan_email = f"""
+            <html>
+            <body>
+                <h3>Update Status Pendaftaran Magang</h3>
+                <p>Halo {mahasiswa.nama},</p>
+                <p>Status lamaran magang Anda telah diperbarui oleh Staff HR.</p>
+                <p>Status Terbaru: <b>{status_label}</b></p>
+                <p>Silakan cek detailnya di sistem.</p>
+            </body>
+            </html>
+            """
+            try:
+                await kirim_email_notifikasi(mahasiswa.email, "Update Status Pendaftaran Magang", pesan_email)
+            except Exception as e:
+                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+
+        return updated
+
+    def ambil_riwayat_mahasiswa(self, mahasiswa_id: int):
+        return self.repo.get_by_mahasiswa(mahasiswa_id)

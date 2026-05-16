@@ -11,7 +11,7 @@ from app.schemas.user_schema import (
     ResetPasswordRequest
 )
 from app.services.auth_service import AuthService
-from app.core.config import settings
+from app.api.dependencies import get_auth_service
 from app.core.security import get_current_user
 
 router = APIRouter(
@@ -22,8 +22,10 @@ router = APIRouter(
 
 #Endpoint Registrasi
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    service = AuthService(db)
+def register_user(
+    user_data: UserCreate, 
+    service: AuthService = Depends(get_auth_service)
+):
     # Menyembunyikan objek user yang di-return atau bisa dibuat response model khusus
     user = service.registrasi_user(user_data)
     return {"message": "Registrasi berhasil", "username": user.username}
@@ -31,13 +33,15 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 #Endpoint Login
 @router.post("/login", response_model=Token)
-def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    service: AuthService = Depends(get_auth_service)
+):
     """
     Menggunakan OAuth2PasswordRequestForm bawaan FastAPI.
     Input yang diterima berupa Form Data (x-www-form-urlencoded), BUKAN JSON.
     Wajib berisi parameter 'username' dan 'password'.
     """
-    service = AuthService(db)
     return service.login_user(form_data.username, form_data.password)
 
 
@@ -45,25 +49,27 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
 @router.put("/change-password")
 def change_password(
     data: ChangePasswordRequest,
-    # Perhatikan: current_user berbentuk dict {"username": ..., "role": ...}
     current_user: dict = Depends(get_current_user), 
-    db: Session = Depends(get_db)
+    service: AuthService = Depends(get_auth_service)
 ):
-    service = AuthService(db)
     # Lempar value dari key "username" ke service
     return service.ubah_password(current_user["username"], data)
 
 
 #Endpoint Lupa Password (Request Link Email)
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    service = AuthService(db)
+async def forgot_password(
+    data: ForgotPasswordRequest, 
+    service: AuthService = Depends(get_auth_service)
+):
     # Harus menggunakan await karena proses kirim email berjalan secara asinkron
     return await service.lupa_password(data.email)
 
 
 #Endpoint Reset Password (Melalui Token Email)
 @router.post("/reset-password")
-def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    service = AuthService(db)
+def reset_password(
+    data: ResetPasswordRequest, 
+    service: AuthService = Depends(get_auth_service)
+):
     return service.reset_password(data)

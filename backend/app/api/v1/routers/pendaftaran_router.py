@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranResponse, PendaftaranUpdate
 from app.services.pendaftaran_service import PendaftaranService
+from app.api.dependencies import get_pendaftaran_service
 from app.core.security import RoleChecker
 from app.core.storage import storage_client
 
@@ -17,8 +18,8 @@ async def daftar_magang(
     lowongan_id: int = Form(...),
     file_cv: UploadFile = File(...),
     file_rekomendasi: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(hanya_mahasiswa)
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
 ):
     """
     Endpoint untuk mahasiswa mendaftar lowongan dengan upload CV dan Surat Rekomendasi.
@@ -49,16 +50,15 @@ async def daftar_magang(
         dokumen_surat_rekomendasi=rek_url
     )
 
-    service = PendaftaranService(db)
     # Gunakan await karena submit_pendaftaran sekarang async (untuk notifikasi)
     return await service.submit_pendaftaran(pendaftaran_data, current_user["user_id"])
 
 @router.patch("/{pendaftaran_id}/status", response_model=PendaftaranResponse)
-def update_status_pendaftaran(
+async def update_status_pendaftaran(
     pendaftaran_id: int,
     data: PendaftaranUpdate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(hanya_staff)
+    current_user: dict = Depends(hanya_staff),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
 ):
     """
     Endpoint khusus Staff untuk memperbarui status seleksi (Diterima/Ditolak/dll).
@@ -66,15 +66,12 @@ def update_status_pendaftaran(
     if not data.status_seleksi:
         raise HTTPException(status_code=400, detail="Field status_seleksi wajib diisi")
         
-    service = PendaftaranService(db)
-    return service.update_status_seleksi(pendaftaran_id, data.status_seleksi)
+    return await service.update_status_seleksi(pendaftaran_id, data.status_seleksi)
 
 @router.get("/saya", response_model=list[PendaftaranResponse])
 def lihat_lamaran_saya(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(hanya_mahasiswa)
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
 ):
     """Mahasiswa melihat riwayat lamarannya sendiri."""
-    from app.repositories.pendaftaran_repository import PendaftaranRepository
-    repo = PendaftaranRepository(db)
-    return repo.get_by_mahasiswa(current_user["user_id"])
+    return service.ambil_riwayat_mahasiswa(current_user["user_id"])

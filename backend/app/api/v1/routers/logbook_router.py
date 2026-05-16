@@ -6,6 +6,7 @@ from datetime import datetime
 from app.db.database import get_db
 from app.schemas.logbook_schemas import LogbookCreate, LogbookUpdate, LogbookResponse
 from app.services.logbook_service import LogbookService
+from app.api.dependencies import get_logbook_service
 from app.core.security import RoleChecker
 from app.core.storage import storage_client
 
@@ -33,8 +34,8 @@ async def create_logbook(
     jenis_kegiatan: str = Form(...),
     media: Optional[str] = Form(None),
     file_dokumentasi: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db), 
-    current_user: dict = Depends(hanya_mahasiswa)
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: LogbookService = Depends(get_logbook_service)
 ):
     """Buat logbook baru (input dari mahasiswa, dokumentasi ke Supabase folder 'dokumentasi')"""
     public_url = None
@@ -59,7 +60,6 @@ async def create_logbook(
         dokumentasi=public_url
     )
 
-    service = LogbookService(db)
     return service.tambah_logbook(logbook_data, current_user["user_id"])
 
 # ============================================
@@ -67,27 +67,23 @@ async def create_logbook(
 # ============================================
 
 @router.get("/mahasiswa/{mahasiswa_id}", response_model=List[LogbookResponse], dependencies=[Depends(semua_user_terdaftar)])
-def get_logbook_mahasiswa(mahasiswa_id: int, db: Session = Depends(get_db)):
+def get_logbook_mahasiswa(mahasiswa_id: int, service: LogbookService = Depends(get_logbook_service)):
     """Ambil semua logbook milik mahasiswa tertentu"""
-    service = LogbookService(db)
     return service.ambil_logbook_mahasiswa(mahasiswa_id)
 
 @router.get("/laporan/{laporan_id}", response_model=List[LogbookResponse], dependencies=[Depends(semua_user_terdaftar)])
-def get_logbook_by_laporan(laporan_id: int, db: Session = Depends(get_db)):
+def get_logbook_by_laporan(laporan_id: int, service: LogbookService = Depends(get_logbook_service)):
     """Ambil semua logbook dari laporan tertentu (composition dari laporan)"""
-    service = LogbookService(db)
     return service.ambil_logbook_by_laporan(laporan_id)
 
 @router.get("/jenis/{jenis_kegiatan}", response_model=List[LogbookResponse], dependencies=[Depends(semua_user_terdaftar)])
-def get_logbook_by_jenis(jenis_kegiatan: str, db: Session = Depends(get_db)):
+def get_logbook_by_jenis(jenis_kegiatan: str, service: LogbookService = Depends(get_logbook_service)):
     """Filter logbook berdasarkan jenis kegiatan"""
-    service = LogbookService(db)
     return service.ambil_logbook_by_jenis_kegiatan(jenis_kegiatan)
 
 @router.get("/dosen/{dosen_pembimbing}", response_model=List[LogbookResponse], dependencies=[Depends(semua_user_terdaftar)])
-def get_logbook_by_dosen(dosen_pembimbing: str, db: Session = Depends(get_db)):
+def get_logbook_by_dosen(dosen_pembimbing: str, service: LogbookService = Depends(get_logbook_service)):
     """Filter logbook berdasarkan dosen pembimbing"""
-    service = LogbookService(db)
     return service.ambil_logbook_by_dosen(dosen_pembimbing)
 
 # ============================================
@@ -95,25 +91,30 @@ def get_logbook_by_dosen(dosen_pembimbing: str, db: Session = Depends(get_db)):
 # ============================================
 
 @router.get("/", response_model=List[LogbookResponse], dependencies=[Depends(semua_user_terdaftar)])
-def get_all_logbook(db: Session = Depends(get_db)):
+def get_all_logbook(service: LogbookService = Depends(get_logbook_service)):
     """Ambil semua logbook"""
-    service = LogbookService(db)
     return service.ambil_semua_logbook()
 
 @router.get("/{logbook_id}", response_model=LogbookResponse, dependencies=[Depends(semua_user_terdaftar)])
-def get_logbook_by_id(logbook_id: int, db: Session = Depends(get_db)):
+def get_logbook_by_id(logbook_id: int, service: LogbookService = Depends(get_logbook_service)):
     """Ambil logbook berdasarkan ID"""
-    service = LogbookService(db)
     return service.ambil_logbook_by_id(logbook_id)
 
 @router.put("/{logbook_id}", response_model=LogbookResponse)
-def update_logbook(logbook_id: int, logbook: LogbookUpdate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_mahasiswa)):
+def update_logbook(
+    logbook_id: int, 
+    logbook: LogbookUpdate, 
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: LogbookService = Depends(get_logbook_service)
+):
     """Update logbook"""
-    service = LogbookService(db)
     return service.ubah_logbook(logbook_id, logbook, current_user["user_id"])
 
 @router.delete("/{logbook_id}")
-def delete_logbook(logbook_id: int, db: Session = Depends(get_db), current_user: dict = Depends(hanya_mahasiswa)):
+def delete_logbook(
+    logbook_id: int, 
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: LogbookService = Depends(get_logbook_service)
+):
     """Hapus logbook"""
-    service = LogbookService(db)
     return service.hapus_logbook(logbook_id, current_user["user_id"])
