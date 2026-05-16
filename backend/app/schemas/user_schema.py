@@ -1,7 +1,12 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from typing import Optional, Literal
+from enum import Enum
 
-#SCHEMAS UNTUK PARENT (USER)
+class UserRole(str, Enum):
+    MAHASISWA = "mahasiswa"
+    DOSEN = "dosen"
+    STAFF = "staff"
+    USER = "user" # Base role
 
 # SCHEMAS UNTUK PARENT (USER)
 class UserBase(BaseModel):
@@ -11,7 +16,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: str
+    role: UserRole
     
     # TAMBAHAN: Field opsional agar data tidak dibuang oleh Pydantic
     # saat mendaftar lewat endpoint general /auth/register
@@ -29,7 +34,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     user_id: int
-    role: str
+    role: UserRole
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -44,7 +49,7 @@ class MahasiswaBase(UserBase):
 class MahasiswaCreate(MahasiswaBase):
     password: str
     # Mengunci role agar selalu "mahasiswa"
-    role: Literal["mahasiswa"] = "mahasiswa"
+    role: UserRole = UserRole.MAHASISWA
 
 class MahasiswaUpdate(UserUpdate):
     nim: Optional[str] = None
@@ -53,7 +58,7 @@ class MahasiswaUpdate(UserUpdate):
 
 class MahasiswaResponse(MahasiswaBase):
     user_id: int
-    role: Literal["mahasiswa"]
+    role: UserRole = UserRole.MAHASISWA
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,14 +70,14 @@ class DosenBase(UserBase):
 
 class DosenCreate(DosenBase):
     password: str
-    role: Literal["dosen"] = "dosen"
+    role: UserRole = UserRole.DOSEN
 
 class DosenUpdate(UserUpdate):
     nip: Optional[str] = None
 
 class DosenResponse(DosenBase):
     user_id: int
-    role: Literal["dosen"]
+    role: UserRole = UserRole.DOSEN
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -86,14 +91,14 @@ class StaffBase(UserBase):
 
 class StaffCreate(StaffBase):
     password: str
-    role: Literal["staff"] = "staff"
+    role: UserRole = UserRole.STAFF
 
 class StaffUpdate(UserUpdate):
     nip: Optional[str] = None
 
 class StaffResponse(StaffBase):
     user_id: int
-    role: Literal["staff"]
+    role: UserRole = UserRole.STAFF
 
     model_config = ConfigDict(from_attributes=True)
 

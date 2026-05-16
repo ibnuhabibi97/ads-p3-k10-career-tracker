@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.user_schema import UserCreate, UserUpdate
+from app.schemas.user_schema import UserCreate, UserUpdate, UserRole
 
 # 1. TAMBAHKAN IMPORT MODEL CHILD DI SINI
 from app.models.user import Mahasiswa
@@ -35,19 +35,19 @@ class UserRepository:
             "role": user_data.role,
         }
 
-        if user_data.role == "mahasiswa":
+        if user_data.role == UserRole.MAHASISWA:
             db_user = Mahasiswa(
                 **user_args,
                 nim=user_data.nim,
                 fakultas=user_data.fakultas,
                 prodi=user_data.prodi,
             )
-        elif user_data.role == "staff":
+        elif user_data.role == UserRole.STAFF:
             db_user = Staff(
                 **user_args,
                 nip=user_data.nip,
             )
-        elif user_data.role == "dosen":
+        elif user_data.role == UserRole.DOSEN:
             db_user = Dosen(
                 **user_args,
                 nip=getattr(user_data, 'nip', getattr(user_data, 'nidn', None)),

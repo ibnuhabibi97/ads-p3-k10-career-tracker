@@ -1,5 +1,6 @@
 import pytest
 from app.schemas.rekomendasi_schemas import SuratRekomendasiStatus
+from app.schemas.user_schema import UserRole
 
 PREFIX = "/api/v1"
 
@@ -75,7 +76,7 @@ def setup_other_dosen(client):
     """Fixture untuk membuat dosen lain"""
     payload = {
         "nama": "Dosen Lain", "username": "dosen_lain", "email": "dosen_lain@apps.ipb.ac.id",
-        "password": "password123", "role": "dosen", "nip": "199999999999999"
+        "password": "password123", "role": UserRole.DOSEN.value, "nip": "199999999999999"
     }
     client.post(f"{PREFIX}/auth/register", json=payload)
     login_res = client.post(f"{PREFIX}/auth/login", data={"username": "dosen_lain", "password": "password123"})

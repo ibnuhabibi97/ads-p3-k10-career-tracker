@@ -22,6 +22,7 @@ from app.models.laporan import Laporan
 from app.models.logbook import Logbook
 from app.models.notifikasi import Notifikasi
 from app.models.surat_rekomendasi import SuratRekomendasi
+from app.schemas.user_schema import UserRole
 
 from app.main import app
 from app.core.config import settings
@@ -203,7 +204,7 @@ def staff_token(client):
         "username": "staffhr",
         "email": "staffhr@apps.ipb.ac.id",
         "password": "password123",
-        "role": "staff",
+        "role": UserRole.STAFF.value,
         "nip": "123456789"
     }
     client.post("/api/v1/auth/register", json=payload)
@@ -224,7 +225,7 @@ def mahasiswa_token(client):
         "username": "mhspelamar_test",
         "email": "mhspelamar_test@apps.ipb.ac.id",
         "password": "password123",
-        "role": "mahasiswa",
+        "role": UserRole.MAHASISWA.value,
         "nim": "G64180002",
         "fakultas": "Teknologi Informasi",
         "prodi": "Informatika"
@@ -247,7 +248,7 @@ def dosen_token(client):
         "username": "dosenpembimbing",
         "email": "dosenpembimbing@apps.ipb.ac.id",
         "password": "password123",
-        "role": "dosen",
+        "role": UserRole.DOSEN.value,
         "nip": "198501012015121001"
     }
     client.post("/api/v1/auth/register", json=payload)
@@ -268,7 +269,7 @@ def mahasiswa_id(client):
         "username": "mhspelamar_test",
         "email": "mhspelamar_test@apps.ipb.ac.id",
         "password": "password123",
-        "role": "mahasiswa",
+        "role": UserRole.MAHASISWA.value,
         "nim": "G64180002",
         "fakultas": "Teknologi Informasi",
         "prodi": "Informatika"
@@ -295,7 +296,7 @@ def dosen_id(client):
         "username": "dosenpembimbing",
         "email": "dosenpembimbing@apps.ipb.ac.id",
         "password": "password123",
-        "role": "dosen",
+        "role": UserRole.DOSEN.value,
         "nip": "198501012015121001"
     }
     client.post("/api/v1/auth/register", json=payload)

@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from app.models.base import Base
+from app.schemas.user_schema import UserRole
 
 class User(Base):
     __tablename__ = "users"
@@ -10,11 +11,11 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
-    role = Column(String, nullable=False)
+    role = Column(SQLEnum(UserRole), nullable=False)
 
     __mapper_args__ = {
         "polymorphic_on": role,
-        "polymorphic_identity": "user",
+        "polymorphic_identity": UserRole.USER,
     }
     # Relasi ke entitas lain
     notifikasi = relationship("Notifikasi", back_populates="user")
@@ -26,7 +27,7 @@ class Mahasiswa(User):
     fakultas = Column(String, nullable=False)
     prodi = Column(String, nullable=False)
 
-    __mapper_args__ = {"polymorphic_identity": "mahasiswa"}
+    __mapper_args__ = {"polymorphic_identity": UserRole.MAHASISWA}
 
     # Relasi ke entitas lain
     pendaftaran = relationship("Pendaftaran", back_populates="mahasiswa")
@@ -39,7 +40,7 @@ class Dosen(User):
     user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
     nip = Column(String, unique=True, index=True, nullable=False)
 
-    __mapper_args__ = {"polymorphic_identity": "dosen"}
+    __mapper_args__ = {"polymorphic_identity": UserRole.DOSEN}
 
     # Relasi ke entitas lain
     laporans_dinilai = relationship("Laporan", back_populates="dosen")
@@ -51,4 +52,4 @@ class Staff(User):
     user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
     nip = Column(String, unique=True, index=True, nullable=False)
 
-    __mapper_args__ = {"polymorphic_identity": "staff"}
+    __mapper_args__ = {"polymorphic_identity": UserRole.STAFF}
