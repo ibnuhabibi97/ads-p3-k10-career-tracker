@@ -33,7 +33,7 @@ async def ajukan_surat(
         file_data=contents,
         file_name=file.filename,
         content_type=file.content_type,
-        folder="pendaftaran/surat_rekomendasi" # Sesuai request user
+        folder="pendaftaran/surat_rekomendasi"
     )
 
     # 2. Proses ke Service
@@ -59,7 +59,7 @@ def detail_surat(surat_id: int, db: Session = Depends(get_db), current_user: dic
     service = SuratRekomendasiService(db)
     return service.ambil_detail_surat(surat_id, current_user["user_id"])
 
-@router.patch("/{surat_id}/proses")
+@router.patch("/{surat_id}/proses", response_model=SuratRekomendasiResponse)
 async def proses_surat_dosen(
     surat_id: int,
     status: str = Form(...), # "Diterima" atau "Ditolak"

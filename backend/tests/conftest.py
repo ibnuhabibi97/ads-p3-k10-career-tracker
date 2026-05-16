@@ -7,7 +7,7 @@ import httpx
 from httpx import ASGITransport
 from jwt import decode
 import hashlib
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 # Mengarahkan Python untuk melihat folder root 'backend'
 # Ini memperbaiki ModuleNotFoundError: No module named 'app'
@@ -20,6 +20,8 @@ from app.models.lowongan import Lowongan
 from app.models.pendaftaran import Pendaftaran
 from app.models.laporan import Laporan
 from app.models.logbook import Logbook
+from app.models.notifikasi import Notifikasi
+from app.models.surat_rekomendasi import SuratRekomendasi
 
 from app.main import app
 from app.core.config import settings
@@ -32,6 +34,12 @@ def mock_storage():
         def side_effect(file_data, file_name, content_type, folder="lowongan"):
             return f"https://mock-supabase-url.com/{folder}/{file_name}"
         mock.side_effect = side_effect
+        yield mock
+
+@pytest.fixture(autouse=True)
+def mock_email():
+    """Mock pengiriman email agar test tidak gagal karena kredensial SMTP."""
+    with patch("app.services.email_service.kirim_email_notifikasi", new_callable=AsyncMock) as mock:
         yield mock
 
 def _jwt_secret_key() -> str:
@@ -82,7 +90,11 @@ TEST_USERNAMES = [
     "dosenpembimbing",
     "attacker_log",
     "attacker_lap",
-    "attacker_pendaftaran"
+    "attacker_pendaftaran",
+    "attacker_mhs",
+    "attacker_mhs_lapor",
+    "attacker_mhs_lapor",
+    "dosen_lain"
 ]
 
 TEST_EMAIL_SUFFIX = "@apps.ipb.ac.id"
@@ -127,10 +139,14 @@ def cleanup_test_data():
             db.query(Pendaftaran).filter(Pendaftaran.lowongan_id.in_(lowongan_ids)).delete(synchronize_session=False)
 
         if user_ids:
+            # Hapus dependensi dengan urutan yang benar (Bottom-Up)
             db.query(Pendaftaran).filter(Pendaftaran.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
             db.query(Logbook).filter(Logbook.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
             db.query(Laporan).filter(Laporan.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
             db.query(Laporan).filter(Laporan.dosen_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(Notifikasi).filter(Notifikasi.user_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(SuratRekomendasi).filter(SuratRekomendasi.mahasiswa_id.in_(user_ids)).delete(synchronize_session=False)
+            db.query(SuratRekomendasi).filter(SuratRekomendasi.dosen_id.in_(user_ids)).delete(synchronize_session=False)
 
         deleted_users = 0
         for user in users:
