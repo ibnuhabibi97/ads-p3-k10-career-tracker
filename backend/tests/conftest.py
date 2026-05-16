@@ -7,6 +7,7 @@ import httpx
 from httpx import ASGITransport
 from jwt import decode
 import hashlib
+from unittest.mock import patch
 
 # Mengarahkan Python untuk melihat folder root 'backend'
 # Ini memperbaiki ModuleNotFoundError: No module named 'app'
@@ -22,6 +23,16 @@ from app.models.logbook import Logbook
 
 from app.main import app
 from app.core.config import settings
+
+@pytest.fixture(autouse=True)
+def mock_storage():
+    """Mock upload Supabase agar test tidak butuh kredensial asli."""
+    with patch("app.core.storage.SupabaseStorage.upload") as mock:
+        # Mocking return value to include the requested folder to satisfy assertions
+        def side_effect(file_data, file_name, content_type, folder="lowongan"):
+            return f"https://mock-supabase-url.com/{folder}/{file_name}"
+        mock.side_effect = side_effect
+        yield mock
 
 def _jwt_secret_key() -> str:
     secret_key = str(settings.SECRET_KEY)
@@ -69,6 +80,9 @@ TEST_USERNAMES = [
     "ibnutester",
     "mhspelamar_test",
     "dosenpembimbing",
+    "attacker_log",
+    "attacker_lap",
+    "attacker_pendaftaran"
 ]
 
 TEST_EMAIL_SUFFIX = "@apps.ipb.ac.id"

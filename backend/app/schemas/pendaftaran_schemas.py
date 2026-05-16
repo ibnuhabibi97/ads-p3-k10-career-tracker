@@ -4,12 +4,12 @@ from datetime import date
 
 class PendaftaranBase(BaseModel):
     dokumen_cv: str
-    # Tambahkan field baru sebagai opsional agar tidak memicu error 422
     dokumen_surat_rekomendasi: str
 
-class PendaftaranCreate(PendaftaranBase):
-    # mahasiswa_id DIHAPUS dari sini karena sistem mengambilnya otomatis dari token JWT
+class PendaftaranCreate(BaseModel):
     lowongan_id: int
+    dokumen_cv: Optional[str] = None
+    dokumen_surat_rekomendasi: Optional[str] = None
 
 class PendaftaranUpdate(BaseModel):
     dokumen_cv: Optional[str] = None

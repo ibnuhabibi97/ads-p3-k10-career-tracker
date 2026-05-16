@@ -16,8 +16,11 @@ class PendaftaranService:
                 detail="Anda sudah mendaftar di lowongan ini dan tidak dapat mengubah data."
             )
         
-        # Simpan pendaftaran baru
-        return self.repo.create(pendaftaran_data, mahasiswa_id)
+        # Susun data untuk disimpan
+        data_dict = pendaftaran_data.model_dump()
+        data_dict["mahasiswa_id"] = mahasiswa_id
+        
+        return self.repo.create(data_dict)
 
     def update_status_seleksi(self, pendaftaran_id: int, status_baru: str):
         # Cari data pendaftaran
@@ -26,5 +29,5 @@ class PendaftaranService:
             raise HTTPException(status_code=404, detail="Data pendaftaran tidak ditemukan")
 
         # Update hanya field status_seleksi
-        update_data = PendaftaranUpdate(status_seleksi=status_baru)
+        update_data = {"status_seleksi": status_baru}
         return self.repo.update(pendaftaran_id, update_data)

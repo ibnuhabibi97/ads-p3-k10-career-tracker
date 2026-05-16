@@ -1,26 +1,13 @@
 from sqlalchemy.orm import Session
 from app.models.pendaftaran import Pendaftaran
-from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranUpdate
 
 class PendaftaranRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, pendaftaran_data: PendaftaranCreate, mahasiswa_id_jwt: int = None):
-        """
-        Membuat pendaftaran baru. 
-        Mendukung override mahasiswa_id dari JWT agar lebih aman (RBAC).
-        """
-        # Keamanan: Gunakan ID dari token JWT jika ada, jika tidak gunakan dari input JSON
-        final_mahasiswa_id = mahasiswa_id_jwt if mahasiswa_id_jwt else pendaftaran_data.mahasiswa_id
-
-        db_pendaftaran = Pendaftaran(
-            mahasiswa_id=final_mahasiswa_id,
-            lowongan_id=pendaftaran_data.lowongan_id,
-            dokumen_cv=pendaftaran_data.dokumen_cv,
-            # Menggunakan getattr untuk berjaga-jaga jika schema belum sempat diupdate
-            dokumen_surat_rekomendasi=getattr(pendaftaran_data, 'dokumen_surat_rekomendasi', None) 
-        )
+    def create(self, data_dict: dict):
+        """Buat pendaftaran baru menggunakan dictionary."""
+        db_pendaftaran = Pendaftaran(**data_dict)
         self.db.add(db_pendaftaran)
         self.db.commit()
         self.db.refresh(db_pendaftaran)
@@ -44,14 +31,10 @@ class PendaftaranRepository:
             Pendaftaran.lowongan_id == lowongan_id
         ).first()
 
-    def update(self, pendaftaran_id: int, update_data: PendaftaranUpdate):
-        """
-        Memperbarui data pendaftaran (misal: update CV, surat rekomendasi, atau status_seleksi).
-        """
+    def update(self, pendaftaran_id: int, update_dict: dict):
+        """Memperbarui data pendaftaran menggunakan dictionary."""
         db_pendaftaran = self.get_by_id(pendaftaran_id)
         if db_pendaftaran:
-            # Hanya update field yang dikirimkan (tidak None)
-            update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(db_pendaftaran, key, value)
                 

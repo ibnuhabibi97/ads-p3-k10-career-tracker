@@ -7,11 +7,11 @@ PREFIX = "/api/v1"
 @pytest.fixture
 def setup_laporan_id(client, mahasiswa_token):
     """Setup: Buat laporan test dulu (parent dari logbook)"""
-    payload = {
-        "dokumen_laporan": "https://drive.google.com/file/d/test-laporan/view"
+    files = {
+        "file": ("test_laporan.pdf", b"pdf content", "application/pdf")
     }
     headers = {"Authorization": f"Bearer {mahasiswa_token}"}
-    response = client.post(f"{PREFIX}/laporan/", json=payload, headers=headers)
+    response = client.post(f"{PREFIX}/laporan/", files=files, headers=headers)
     assert response.status_code == 201
     return response.json()["laporan_id"]
 
@@ -19,7 +19,6 @@ def setup_laporan_id(client, mahasiswa_token):
 @pytest.fixture
 def setup_logbook_id(client, mahasiswa_token, setup_laporan_id, dosen_id):
     """Setup: Buat logbook test"""
-    # Menggunakan multipart/form-data sesuai router terbaru
     data = {
         "laporan_id": setup_laporan_id,
         "dosen_id": dosen_id,
@@ -30,7 +29,6 @@ def setup_logbook_id(client, mahasiswa_token, setup_laporan_id, dosen_id):
         "jenis_kegiatan": "Programming"
     }
     headers = {"Authorization": f"Bearer {mahasiswa_token}"}
-    # Tanpa file dulu untuk setup
     response = client.post(f"{PREFIX}/logbook/", data=data, headers=headers)
     assert response.status_code == 201
     return response.json()["logbook_id"]
@@ -45,13 +43,13 @@ def test_create_logbook_positive(client, mahasiswa_token, setup_laporan_id, dose
         "keterangan": "Logbook tambahan dengan file",
         "jenis_kegiatan": "Documentation"
     }
-    # Simulasi upload file
     files = {"file_dokumentasi": ("test.png", b"file content", "image/png")}
     headers = {"Authorization": f"Bearer {mahasiswa_token}"}
     
     response = client.post(f"{PREFIX}/logbook/", data=data, files=files, headers=headers)
     assert response.status_code == 201
     assert response.json()["dokumentasi"] is not None
+    assert "dokumentasi" in response.json()["dokumentasi"] # Memastikan folder benar
 
 def test_get_logbook_by_id_positive(client, mahasiswa_token, setup_logbook_id):
     """Test positif: Ambil logbook berdasarkan ID"""
@@ -62,7 +60,6 @@ def test_get_logbook_by_id_positive(client, mahasiswa_token, setup_logbook_id):
 
 def test_update_logbook_negative_forbidden_ownership(client, setup_logbook_id):
     """Test Keamanan: Mahasiswa lain tidak bisa update logbook orang lain"""
-    # Create another user for attack
     payload_reg = {
         "nama": "Attacker", "username": "attacker_log", "email": "atk_log@apps.ipb.ac.id",
         "password": "password123", "role": "mahasiswa", "nim": "G64187777",

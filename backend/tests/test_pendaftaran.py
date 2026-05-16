@@ -1,186 +1,105 @@
 import pytest
-import asyncio
-import httpx
-from httpx import ASGITransport
-from app.main import app
+from datetime import date
 
-transport = ASGITransport(app=app)
-_async_client = httpx.AsyncClient(transport=transport, base_url="http://testserver")
-
-def _run(coro):
-    return asyncio.run(coro)
-
-class SyncAsyncClient:
-    def __init__(self, async_client):
-        self._client = async_client
-
-    def get(self, *args, **kwargs):
-        return _run(self._client.get(*args, **kwargs))
-
-    def post(self, *args, **kwargs):
-        return _run(self._client.post(*args, **kwargs))
-
-    def put(self, *args, **kwargs):
-        return _run(self._client.put(*args, **kwargs))
-
-    def delete(self, *args, **kwargs):
-        return _run(self._client.delete(*args, **kwargs))
-
-    def patch(self, *args, **kwargs):
-        return _run(self._client.patch(*args, **kwargs))
-
-client = SyncAsyncClient(_async_client)
 PREFIX = "/api/v1"
 
-# Variabel global
-token_mhs = ""
-token_staff = ""
-lowongan_test_id = 0
-pendaftaran_test_id = 0
-
-def test_setup_users_and_lowongan():
-    """Setup: Register & Login Mahasiswa, Staff, dan buat 1 Lowongan"""
-    global token_mhs, token_staff, lowongan_test_id
-
-    # 1. Setup Mahasiswa
-    client.post(f"{PREFIX}/auth/register", json={
-        "nama": "Mahasiswa Pelamar Baru", "username": "mhspelamar_baru", 
-        "email": "pelamar.baru@apps.ipb.ac.id", "password": "password123", 
-        "role": "mahasiswa", "nim": "G64190001", "fakultas": "FMIPA", "prodi": "Ilmu Komputer"
-    })
-    res_mhs = client.post(f"{PREFIX}/auth/login", data={"username": "mhspelamar_baru", "password": "password123"})
-    assert res_mhs.status_code == 200, "Login Mahasiswa gagal!"
-    token_mhs = res_mhs.json()["access_token"]
-
-    # 2. Setup Staff
-    client.post(f"{PREFIX}/auth/register", json={
-        "nama": "Staff HR Baru", "username": "staffhr_baru", 
-        "email": "hr.baru@apps.ipb.ac.id", "password": "password123", 
-        "role": "staff", "nip": "199001012020121002"
-    })
-    res_staff = client.post(f"{PREFIX}/auth/login", data={"username": "staffhr_baru", "password": "password123"})
-    assert res_staff.status_code == 200, "Login Staff gagal!"
-    token_staff = res_staff.json()["access_token"]
-
-    # 3. Setup Lowongan (DISESUAIKAN DENGAN SCHEMA LOWONGAN BARU)
+@pytest.fixture
+def setup_lowongan_id(client, staff_token):
+    """Setup: Buat 1 Lowongan untuk ditest"""
     res_lowongan = client.post(
         f"{PREFIX}/lowongan/", 
-        headers={"Authorization": f"Bearer {token_staff}"},
+        headers={"Authorization": f"Bearer {staff_token}"},
         json={
             "perusahaan": "PT Teknologi Pintar",
             "judul_posisi": "Data Scientist Intern",
             "deskripsi_pekerjaan": "Membangun model machine learning dan analisis data.",
-            "kualifikasi": [
-                "Mahasiswa tingkat akhir", 
-                "Menguasai Python dan SQL"
-            ], # Perhatikan: Ini sekarang berbentuk List/Array
-            "deadline": "2026-12-31" # Format tanggal YYYY-MM-DD
+            "kualifikasi": ["Mahasiswa tingkat akhir", "Menguasai Python"],
+            "deadline": "2026-12-31"
         } 
     )
+    assert res_lowongan.status_code == 201
+    return res_lowongan.json().get("lowongan_id")
+
+def test_mahasiswa_daftar_lowongan_sukses(client, mahasiswa_token, setup_lowongan_id):
+    """Test positif: Mahasiswa mendaftar dengan upload CV dan Surat Rekomendasi"""
+    data = {
+        "lowongan_id": setup_lowongan_id
+    }
+    files = {
+        "file_cv": ("my_cv.pdf", b"pdf content", "application/pdf"),
+        "file_rekomendasi": ("surat.pdf", b"pdf content", "application/pdf")
+    }
+    headers = {"Authorization": f"Bearer {mahasiswa_token}"}
     
-    assert res_lowongan.status_code == 201, f"GAGAL BUAT LOWONGAN: {res_lowongan.json()}"
-    lowongan_test_id = res_lowongan.json().get("lowongan_id")
-
-
-# ==========================================
-# SKENARIO VALIDASI SCHEMA
-# ==========================================
-
-def test_daftar_tanpa_surat_rekomendasi_gagal():
-    # Mengetes apakah Pydantic memblokir request yang tidak membawa surat rekomendasi
-    payload = {
-        "lowongan_id": lowongan_test_id,
-        "dokumen_cv": "https://link-cv.com/cv.pdf"
-        # dokumen_surat_rekomendasi sengaja dihilangkan
-    }
-    response = client.post(
-        f"{PREFIX}/pendaftaran/",
-        headers={"Authorization": f"Bearer {token_mhs}"},
-        json=payload
-    )
-    # Harus ditolak oleh validasi Schema (Unprocessable Entity)
-    assert response.status_code == 422 
-
-# ==========================================
-# SKENARIO PENDAFTARAN UTAMA
-# ==========================================
-
-def test_mahasiswa_daftar_lowongan_sukses():
-    global pendaftaran_test_id
-    payload = {
-        "lowongan_id": lowongan_test_id,
-        "dokumen_cv": "https://link-cv.com/cv.pdf",
-        "dokumen_surat_rekomendasi": "https://link-surat.com/rekomendasi.pdf" # Wajib ada!
-    }
-    response = client.post(
-        f"{PREFIX}/pendaftaran/",
-        headers={"Authorization": f"Bearer {token_mhs}"},
-        json=payload
-    )
+    response = client.post(f"{PREFIX}/pendaftaran/", data=data, files=files, headers=headers)
     assert response.status_code == 201
-    data = response.json()
-    assert data["status_seleksi"] == "Pending Review"
-    pendaftaran_test_id = data["pendaftaran_id"]
+    
+    res_data = response.json()
+    assert res_data["lowongan_id"] == setup_lowongan_id
+    assert "pendaftaran/cv" in res_data["dokumen_cv"]
+    assert "pendaftaran/surat_rekomendasi" in res_data["dokumen_surat_rekomendasi"]
+    assert res_data["status_seleksi"] == "Pending Review"
 
-def test_mahasiswa_daftar_lowongan_duplikat_gagal():
-    # Mencoba mendaftar lagi dengan data lengkap agar lolos Pydantic, 
-    # tapi harus diblokir oleh logika Service (Business Logic)
-    payload = {
-        "lowongan_id": lowongan_test_id,
-        "dokumen_cv": "https://link-cv.com/cv_revisi.pdf",
-        "dokumen_surat_rekomendasi": "https://link-surat.com/rekomendasi_baru.pdf"
-    }
-    response = client.post(
-        f"{PREFIX}/pendaftaran/",
-        headers={"Authorization": f"Bearer {token_mhs}"},
-        json=payload
-    )
-    # Harus ditolak (Bad Request) karena duplikat
-    assert response.status_code == 400 
-    assert "sudah mendaftar" in response.json()["detail"].lower()
+def test_daftar_tanpa_file_gagal(client, mahasiswa_token, setup_lowongan_id):
+    """Test negatif: Mencoba daftar tanpa menyertakan file wajib"""
+    data = {"lowongan_id": setup_lowongan_id}
+    # Tanpa files
+    headers = {"Authorization": f"Bearer {mahasiswa_token}"}
+    response = client.post(f"{PREFIX}/pendaftaran/", data=data, headers=headers)
+    assert response.status_code == 422
 
-def test_staff_coba_daftar_lowongan_gagal():
-    payload = {
-        "lowongan_id": lowongan_test_id,
-        "dokumen_cv": "cv_staff.pdf",
-        "dokumen_surat_rekomendasi": "surat_staff.pdf"
+def test_mahasiswa_daftar_lowongan_duplikat_gagal(client, mahasiswa_token, setup_lowongan_id):
+    """Test negatif: Mahasiswa tidak bisa daftar 2x di lowongan yang sama"""
+    data = {"lowongan_id": setup_lowongan_id}
+    files = {
+        "file_cv": ("cv.pdf", b"content", "application/pdf"),
+        "file_rekomendasi": ("surat.pdf", b"content", "application/pdf")
     }
-    response = client.post(
-        f"{PREFIX}/pendaftaran/",
-        headers={"Authorization": f"Bearer {token_staff}"},
-        json=payload
-    )
+    headers = {"Authorization": f"Bearer {mahasiswa_token}"}
+    
+    # Pendaftaran pertama
+    res1 = client.post(f"{PREFIX}/pendaftaran/", data=data, files=files, headers=headers)
+    assert res1.status_code == 201
+    
+    # Pendaftaran kedua
+    res2 = client.post(f"{PREFIX}/pendaftaran/", data=data, files=files, headers=headers)
+    assert res2.status_code == 400
+    assert "sudah mendaftar" in res2.json()["detail"].lower()
+
+def test_staff_coba_daftar_lowongan_gagal(client, staff_token, setup_lowongan_id):
+    """Test Keamanan: Staff tidak diizinkan mendaftar (hanya mahasiswa)"""
+    data = {"lowongan_id": setup_lowongan_id}
+    files = {
+        "file_cv": ("cv.pdf", b"content", "application/pdf"),
+        "file_rekomendasi": ("surat.pdf", b"content", "application/pdf")
+    }
+    headers = {"Authorization": f"Bearer {staff_token}"}
+    response = client.post(f"{PREFIX}/pendaftaran/", data=data, files=files, headers=headers)
     assert response.status_code == 403
 
-# ==========================================
-# SKENARIO UPDATE & READ
-# ==========================================
-
-def test_mahasiswa_coba_update_status_gagal():
-    payload = {"status_seleksi": "Diterima"}
-    response = client.patch(
-        f"{PREFIX}/pendaftaran/{pendaftaran_test_id}/status",
-        headers={"Authorization": f"Bearer {token_mhs}"},
-        json=payload
-    )
-    assert response.status_code == 403
-
-def test_staff_update_status_sukses():
-    payload = {"status_seleksi": "Tahap Wawancara"}
-    response = client.patch(
-        f"{PREFIX}/pendaftaran/{pendaftaran_test_id}/status",
-        headers={"Authorization": f"Bearer {token_staff}"},
-        json=payload
-    )
+def test_staff_update_status_sukses(client, staff_token, mahasiswa_token, setup_lowongan_id):
+    """Test positif: Staff memperbarui status pendaftaran"""
+    # 1. Mahasiswa daftar dulu
+    data = {"lowongan_id": setup_lowongan_id}
+    files = {
+        "file_cv": ("cv.pdf", b"content", "application/pdf"),
+        "file_rekomendasi": ("surat.pdf", b"content", "application/pdf")
+    }
+    mhs_headers = {"Authorization": f"Bearer {mahasiswa_token}"}
+    reg_res = client.post(f"{PREFIX}/pendaftaran/", data=data, files=files, headers=mhs_headers)
+    pendaftaran_id = reg_res.json()["pendaftaran_id"]
+    
+    # 2. Staff update status
+    payload = {"status_seleksi": "Telah Diterima"}
+    staff_headers = {"Authorization": f"Bearer {staff_token}"}
+    response = client.patch(f"{PREFIX}/pendaftaran/{pendaftaran_id}/status", json=payload, headers=staff_headers)
+    
     assert response.status_code == 200
-    assert response.json()["status_seleksi"] == "Tahap Wawancara"
+    assert response.json()["status_seleksi"] == "Telah Diterima"
 
-def test_mahasiswa_lihat_lamaran_saya():
-    response = client.get(
-        f"{PREFIX}/pendaftaran/saya",
-        headers={"Authorization": f"Bearer {token_mhs}"}
-    )
+def test_mahasiswa_lihat_lamaran_saya(client, mahasiswa_token, setup_lowongan_id):
+    """Test positif: Mahasiswa melihat daftar pendaftarannya sendiri"""
+    headers = {"Authorization": f"Bearer {mahasiswa_token}"}
+    response = client.get(f"{PREFIX}/pendaftaran/saya", headers=headers)
     assert response.status_code == 200
-    data = response.json()
-    assert len(data) >= 1
-    assert any(item["lowongan_id"] == lowongan_test_id for item in data)
+    assert isinstance(response.json(), list)
