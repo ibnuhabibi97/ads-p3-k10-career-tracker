@@ -29,7 +29,7 @@ def get_all_laporan(db: Session = Depends(get_db)):
     service = LaporanService(db)
     return service.ambil_semua_laporan()
 
-@router.get("/{laporan_id}", response_model=LogbookResponse, dependencies=[Depends(semua_user_terdaftar)])
+@router.get("/{laporan_id}", response_model=LaporanResponse, dependencies=[Depends(semua_user_terdaftar)])
 def get_laporan_by_id(laporan_id: int, db: Session = Depends(get_db)):
     """Ambil laporan berdasarkan ID"""
     service = LaporanService(db)
