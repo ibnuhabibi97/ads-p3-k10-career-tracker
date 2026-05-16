@@ -33,7 +33,7 @@ async def ajukan_surat(
         file_data=contents,
         file_name=file.filename,
         content_type=file.content_type,
-        folder="pendaftaran/surat_rekomendasi"
+        folder="surat_rekomendasi"
     )
 
     # 2. Proses ke Service
@@ -83,7 +83,7 @@ async def proses_surat_dosen(
             file_data=contents,
             file_name=file_signed.filename,
             content_type=file_signed.content_type,
-            folder="pendaftaran/surat_rekomendasi"
+            folder="surat_rekomendasi"
         )
 
     service = SuratRekomendasiService(db)
