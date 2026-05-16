@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.repositories.laporan_repository import LaporanRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate
+from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanStatus
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
 from app.services.email_service import kirim_email_notifikasi
 
@@ -44,6 +44,7 @@ class LaporanService:
         """Buat laporan baru"""
         data_dict = data.model_dump()
         data_dict["mahasiswa_id"] = user_id # Enforce user_id dari token
+        data_dict["status"] = LaporanStatus.PENDING
         return self.repo.create(data_dict)
 
     def ubah_laporan(self, laporan_id: int, data: LaporanUpdate, user_id: int):
@@ -66,7 +67,7 @@ class LaporanService:
         # Update dengan data penilaian
         update_data = {
             "nilai": data.nilai,
-            "status": data.status,
+            "status": data.status, # Sekarang sudah Enum dari Schema
             "dosen_id": dosen_id
         }
         if data.catatan:
@@ -94,7 +95,7 @@ class LaporanService:
                 <p>Halo {mahasiswa.nama},</p>
                 <p>Laporan magang Anda telah selesai dinilai oleh <b>{dosen.nama}</b>.</p>
                 <p>Nilai: <b>{data.nilai}</b></p>
-                <p>Status: <b>{data.status}</b></p>
+                <p>Status: <b>{data.status.value}</b></p>
                 {f"<p>Catatan: {data.catatan}</p>" if data.catatan else ""}
                 <p>Silakan cek detail penilaian di sistem.</p>
             </body>
@@ -116,7 +117,7 @@ class LaporanService:
         # Update catatan dan status
         update_data = {
             "catatan": data.catatan,
-            "status": data.status,
+            "status": data.status, # Sudah Enum
             "dosen_id": dosen_id
         }
         

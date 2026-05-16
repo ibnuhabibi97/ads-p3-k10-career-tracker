@@ -1,12 +1,13 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import date
+from app.schemas.laporan_schema import LaporanStatus
 
 # Digunakan di endpoint khusus Dosen untuk memberikan nilai dan catatan revisi
 # (misal: PATCH /laporan/{id}/nilai)
 class LaporanPenilaianUpdate(BaseModel):
     nilai: int
-    status: str  # "Pending", "Telah Dinilai", atau "Ditolak"
+    status: LaporanStatus  # Menggunakan Enum
     dosen_id: Optional[int] = None
     catatan: Optional[str] = None  # Catatan/feedback revisi dari dosen
 
@@ -14,5 +15,5 @@ class LaporanPenilaianUpdate(BaseModel):
 # (misal: PATCH /laporan/{id}/revisi-dosen)
 class LaporanRevisiDosenUpdate(BaseModel):
     catatan: str  # Catatan revisi/feedback dari dosen
-    status: str = "Ditolak"  # Default status ketika ada catatan revisi
+    status: LaporanStatus = LaporanStatus.REJECTED  # Menggunakan Enum
     dosen_id: Optional[int] = None

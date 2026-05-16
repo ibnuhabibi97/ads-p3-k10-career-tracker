@@ -1,6 +1,14 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import date
+from enum import Enum
+
+class LaporanStatus(str, Enum):
+    PENDING = "PENDING"
+    REVIEW = "REVIEW"
+    REVISION = "REVISION"
+    GRADED = "GRADED"
+    REJECTED = "REJECTED"
 
 #Base Schema
 class LaporanBase(BaseModel):
@@ -22,7 +30,7 @@ class LaporanResponse(BaseModel):
     laporan_id: int
     mahasiswa_id: int
     dosen_id: Optional[int] = None
-    status: str
+    status: LaporanStatus
     nilai: Optional[int] = None
     tanggal_lapor: date
     dokumen_laporan: str

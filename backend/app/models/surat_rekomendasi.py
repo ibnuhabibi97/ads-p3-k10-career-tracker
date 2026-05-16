@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 import datetime
+from app.schemas.rekomendasi_schemas import SuratRekomendasiStatus
 
 class SuratRekomendasi(Base):
     __tablename__ = "surat_rekomendasi"
@@ -11,7 +12,11 @@ class SuratRekomendasi(Base):
     dosen_id = Column(Integer, ForeignKey("dosen.user_id"), nullable=False)
     
     dokumen_surat = Column(String, nullable=False)
-    status_surat = Column(String, default="Pending") # Contoh: Pending, Diterima, Ditolak
+    status_surat = Column(
+        SQLEnum(SuratRekomendasiStatus), 
+        default=SuratRekomendasiStatus.PENDING,
+        nullable=False
+    )
 
     # Relasi
     mahasiswa = relationship("Mahasiswa", back_populates="surat_rekomendasi")

@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from app.schemas.laporan_schema import LaporanStatus
 
 PREFIX = "/api/v1"
 
@@ -12,14 +13,10 @@ def test_create_laporan_positive(client, mahasiswa_token):
     headers = {"Authorization": f"Bearer {mahasiswa_token}"}
     response = client.post(f"{PREFIX}/laporan/", files=files, headers=headers)
     
-    # Karena kita tidak punya kredensial Supabase di env test, 
-    # ini mungkin akan menghasilkan 500 atau Error jika storage_client gagal.
-    # Namun secara kontrak, ini adalah cara kirim yang benar sekarang.
-    assert response.status_code in [201, 500] 
-    if response.status_code == 201:
-        data = response.json()
-        assert "laporan_id" in data
-        assert "mahasiswa_id" in data
+    assert response.status_code == 201
+    data = response.json()
+    assert "laporan_id" in data
+    assert data["status"] == LaporanStatus.PENDING.value
 
 def test_create_laporan_negative_unauthorized(client):
     """Test negatif: Akses tanpa token"""
@@ -45,7 +42,7 @@ def test_update_laporan_negative_forbidden_ownership(client, other_mahasiswa_tok
     files = {"file": ("orig.pdf", b"content")}
     headers_orig = {"Authorization": f"Bearer {mahasiswa_token}"}
     res_orig = client.post(f"{PREFIX}/laporan/", files=files, headers=headers_orig)
-    if res_orig.status_code != 201: pytest.skip("Gagal create laporan (mungkin Supabase creds missing)")
+    assert res_orig.status_code == 201
     laporan_id = res_orig.json()["laporan_id"]
 
     # 2. Attacker coba update
@@ -60,22 +57,23 @@ def test_update_nilai_laporan_positive(client, dosen_token, mahasiswa_token):
     files = {"file": ("lapor.pdf", b"content")}
     headers_mhs = {"Authorization": f"Bearer {mahasiswa_token}"}
     res_mhs = client.post(f"{PREFIX}/laporan/", files=files, headers=headers_mhs)
-    if res_mhs.status_code != 201: pytest.skip("Gagal create laporan")
+    assert res_mhs.status_code == 201
     laporan_id = res_mhs.json()["laporan_id"]
 
     # 2. Dosen nilai
-    payload = {"nilai": 90, "status": "Telah Dinilai"}
+    payload = {"nilai": 90, "status": LaporanStatus.GRADED.value}
     headers_dsn = {"Authorization": f"Bearer {dosen_token}"}
     response = client.patch(f"{PREFIX}/laporan/{laporan_id}/nilai", json=payload, headers=headers_dsn)
     assert response.status_code == 200
     assert response.json()["nilai"] == 90
+    assert response.json()["status"] == LaporanStatus.GRADED.value
 
 def test_delete_laporan_positive(client, mahasiswa_token):
     """Test positif: Mahasiswa hapus laporan miliknya sendiri"""
     files = {"file": ("to_delete.pdf", b"content")}
     headers = {"Authorization": f"Bearer {mahasiswa_token}"}
     res = client.post(f"{PREFIX}/laporan/", files=files, headers=headers)
-    if res.status_code != 201: pytest.skip("Gagal create laporan")
+    assert res.status_code == 201
     laporan_id = res.json()["laporan_id"]
     
     response = client.delete(f"{PREFIX}/laporan/{laporan_id}", headers=headers)

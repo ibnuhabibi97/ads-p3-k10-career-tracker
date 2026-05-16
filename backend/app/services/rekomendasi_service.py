@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.repositories.rekomendasi_repository import SuratRekomendasiRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.rekomendasi_schemas import SuratRekomendasiCreate, SuratRekomendasiUpdate
+from app.schemas.rekomendasi_schemas import SuratRekomendasiCreate, SuratRekomendasiUpdate, SuratRekomendasiStatus
 from app.services.email_service import kirim_email_notifikasi
 
 class SuratRekomendasiService:
@@ -21,7 +21,7 @@ class SuratRekomendasiService:
             "mahasiswa_id": mahasiswa_id,
             "dosen_id": data.dosen_id,
             "dokumen_surat": public_url,
-            "status_surat": "Pending"
+            "status_surat": SuratRekomendasiStatus.PENDING
         }
         db_surat = self.repo.create(data_dict)
 
@@ -55,7 +55,7 @@ class SuratRekomendasiService:
 
         return db_surat
 
-    async def proses_surat_oleh_dosen(self, surat_id: int, status: str, dosen_id: int, signed_url: str = None):
+    async def proses_surat_oleh_dosen(self, surat_id: int, status: SuratRekomendasiStatus, dosen_id: int, signed_url: str = None):
         """
         Alur: Dosen tolak/setujui surat -> jika setuju upload surat bertanda tangan -> notif ke mahasiswa
         """
@@ -75,7 +75,7 @@ class SuratRekomendasiService:
         dosen = self.user_repo.get_by_id(dosen_id)
 
         if mahasiswa:
-            status_teks = "DISETUJUI" if status == "Diterima" else "DITOLAK"
+            status_teks = "DISETUJUI" if status == SuratRekomendasiStatus.APPROVED else "DITOLAK"
             # 1. Notifikasi sistem
             self.notif_repo.create({
                 "user_id": mahasiswa.user_id,
@@ -90,7 +90,7 @@ class SuratRekomendasiService:
                 <h3>Update Status Surat Rekomendasi</h3>
                 <p>Halo {mahasiswa.nama},</p>
                 <p>Permohonan surat rekomendasi Anda telah <b>{status_teks}</b> oleh dosen pembimbing <b>{dosen.nama}</b>.</p>
-                {"<p>Silakan download surat yang telah ditandatangani di aplikasi.</p>" if status == "Diterima" else ""}
+                {"<p>Silakan download surat yang telah ditandatangani di aplikasi.</p>" if status == SuratRekomendasiStatus.APPROVED else ""}
             </body>
             </html>
             """

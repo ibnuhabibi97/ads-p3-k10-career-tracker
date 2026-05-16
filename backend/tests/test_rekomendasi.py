@@ -1,4 +1,5 @@
 import pytest
+from app.schemas.rekomendasi_schemas import SuratRekomendasiStatus
 
 PREFIX = "/api/v1"
 
@@ -19,6 +20,7 @@ def test_flow_surat_rekomendasi_full(client, mahasiswa_token, dosen_token, dosen
     res_ajukan = client.post(f"{PREFIX}/surat-rekomendasi/", data=data_ajukan, files=files_ajukan, headers=headers_mhs)
     assert res_ajukan.status_code == 201
     surat_id = res_ajukan.json()["surat_id"]
+    assert res_ajukan.json()["status_surat"] == SuratRekomendasiStatus.PENDING.value
     
     # 2. Verifikasi notifikasi di sisi Dosen
     headers_dsn = {"Authorization": f"Bearer {dosen_token}"}
@@ -29,12 +31,12 @@ def test_flow_surat_rekomendasi_full(client, mahasiswa_token, dosen_token, dosen
     assert any("mengajukan" in n["isi_notifikasi"] for n in notif_list_dsn)
     
     # 3. Dosen setujui surat (upload ttd)
-    data_proses = {"status": "Diterima"}
+    data_proses = {"status": SuratRekomendasiStatus.APPROVED.value}
     files_proses = {"file_signed": ("surat_ttd.pdf", b"ini surat bertanda tangan", "application/pdf")}
     
     res_proses = client.patch(f"{PREFIX}/surat-rekomendasi/{surat_id}/proses", data=data_proses, files=files_proses, headers=headers_dsn)
     assert res_proses.status_code == 200
-    assert res_proses.json()["status_surat"] == "Diterima"
+    assert res_proses.json()["status_surat"] == SuratRekomendasiStatus.APPROVED.value
     assert "mock-supabase" in res_proses.json()["dokumen_surat"] 
     
     # 4. Verifikasi notifikasi di sisi Mahasiswa
@@ -63,9 +65,9 @@ def test_proses_surat_negative_wrong_dosen(client, dosen_token, mahasiswa_token,
     res_ajukan = client.post(f"{PREFIX}/surat-rekomendasi/", data=data, files=files, headers=headers_mhs)
     surat_id = res_ajukan.json()["surat_id"]
     
-    # 2. Dosen A mencoba proses (status Ditolak agar tidak butuh file_signed)
+    # 2. Dosen A mencoba proses (status DECLINED agar tidak butuh file_signed)
     headers_dsn_a = {"Authorization": f"Bearer {dosen_token}"}
-    res_proses = client.patch(f"{PREFIX}/surat-rekomendasi/{surat_id}/proses", data={"status": "Ditolak"}, headers=headers_dsn_a)
+    res_proses = client.patch(f"{PREFIX}/surat-rekomendasi/{surat_id}/proses", data={"status": SuratRekomendasiStatus.DECLINED.value}, headers=headers_dsn_a)
     assert res_proses.status_code == 404
 
 @pytest.fixture

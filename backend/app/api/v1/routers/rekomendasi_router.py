@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.db.database import get_db
-from app.schemas.rekomendasi_schemas import SuratRekomendasiCreate, SuratRekomendasiResponse
+from app.schemas.rekomendasi_schemas import SuratRekomendasiCreate, SuratRekomendasiResponse, SuratRekomendasiStatus
 from app.services.rekomendasi_service import SuratRekomendasiService
 from app.core.security import RoleChecker
 from app.core.storage import storage_client
@@ -62,19 +62,16 @@ def detail_surat(surat_id: int, db: Session = Depends(get_db), current_user: dic
 @router.patch("/{surat_id}/proses", response_model=SuratRekomendasiResponse)
 async def proses_surat_dosen(
     surat_id: int,
-    status: str = Form(...), # "Diterima" atau "Ditolak"
+    status: SuratRekomendasiStatus = Form(...), # Menggunakan Enum langsung
     file_signed: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: dict = Depends(hanya_dosen)
 ):
     """
-    Dosen memproses surat (setuju/tolak). Jika setuju, wajib upload surat bertanda tangan.
+    Dosen memproses surat (setuju/tolak). Jika APPROVED, wajib upload surat bertanda tangan.
     """
-    if status not in ["Diterima", "Ditolak"]:
-        raise HTTPException(status_code=400, detail="Status harus 'Diterima' atau 'Ditolak'")
-
     signed_url = None
-    if status == "Diterima":
+    if status == SuratRekomendasiStatus.APPROVED:
         if not file_signed:
             raise HTTPException(status_code=400, detail="Jika disetujui, file bertanda tangan wajib diunggah.")
         
