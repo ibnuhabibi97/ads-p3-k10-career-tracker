@@ -50,7 +50,8 @@ async def daftar_magang(
     )
 
     service = PendaftaranService(db)
-    return service.submit_pendaftaran(pendaftaran_data, current_user["user_id"])
+    # Gunakan await karena submit_pendaftaran sekarang async (untuk notifikasi)
+    return await service.submit_pendaftaran(pendaftaran_data, current_user["user_id"])
 
 @router.patch("/{pendaftaran_id}/status", response_model=PendaftaranResponse)
 def update_status_pendaftaran(

@@ -96,16 +96,18 @@ def get_laporan_dosen(dosen_id: int, db: Session = Depends(get_db)):
     return service.ambil_laporan_dosen(dosen_id)
 
 @router.patch("/{laporan_id}/nilai", response_model=LaporanResponse)
-def update_nilai_laporan(laporan_id: int, data: LaporanPenilaianUpdate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_dosen)):
+async def update_nilai_laporan(laporan_id: int, data: LaporanPenilaianUpdate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_dosen)):
     """Update nilai laporan oleh dosen (dengan optional catatan revisi)"""
     service = LaporanService(db)
-    return service.ubah_nilai_laporan(laporan_id, data, current_user["user_id"])
+    result = await service.ubah_nilai_laporan(laporan_id, data, current_user["user_id"])
+    print(f"DEBUG_ROUTER: result is {type(result)}")
+    return result
 
 @router.patch("/{laporan_id}/revisi-dosen", response_model=LaporanResponse)
-def update_catatan_revisi_dosen(laporan_id: int, data: LaporanRevisiDosenUpdate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_dosen)):
+async def update_catatan_revisi_dosen(laporan_id: int, data: LaporanRevisiDosenUpdate, db: Session = Depends(get_db), current_user: dict = Depends(hanya_dosen)):
     """Update catatan revisi oleh dosen ketika menolak laporan"""
     service = LaporanService(db)
-    return service.ubah_catatan_revisi_dosen(laporan_id, data, current_user["user_id"])
+    return await service.ubah_catatan_revisi_dosen(laporan_id, data, current_user["user_id"])
 
 # ============================================
 # ENDPOINT UNTUK STAFF

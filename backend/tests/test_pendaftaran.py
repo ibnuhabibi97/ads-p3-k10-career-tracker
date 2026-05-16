@@ -90,12 +90,12 @@ def test_staff_update_status_sukses(client, staff_token, mahasiswa_token, setup_
     pendaftaran_id = reg_res.json()["pendaftaran_id"]
     
     # 2. Staff update status
-    payload = {"status_seleksi": "Telah Diterima"}
+    payload = {"status_seleksi": "Accepted"}
     staff_headers = {"Authorization": f"Bearer {staff_token}"}
     response = client.patch(f"{PREFIX}/pendaftaran/{pendaftaran_id}/status", json=payload, headers=staff_headers)
     
     assert response.status_code == 200
-    assert response.json()["status_seleksi"] == "Telah Diterima"
+    assert response.json()["status_seleksi"] == "Accepted"
 
 def test_mahasiswa_lihat_lamaran_saya(client, mahasiswa_token, setup_lowongan_id):
     """Test positif: Mahasiswa melihat daftar pendaftarannya sendiri"""
