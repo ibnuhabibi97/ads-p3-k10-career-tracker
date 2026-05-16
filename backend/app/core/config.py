@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     
     # URL Frontend yang akan dituju saat link reset diklik
     FRONTEND_URL: str = "http://localhost:3000/reset-password"
+    #konfigurasi Supabase
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
+    SUPABASE_BUCKET: str
     
     # Membaca variabel dari file .env secara otomatis
     model_config = SettingsConfigDict(
