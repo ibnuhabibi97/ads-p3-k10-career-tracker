@@ -1,12 +1,17 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.laporan_repository import LaporanRepository
+from app.repositories.notifikasi_repository import NotifikasiRepository
+from app.repositories.user_repository import UserRepository
 from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
+from app.services.email_service import kirim_email_notifikasi
 
 class LaporanService:
     def __init__(self, db: Session):
         self.repo = LaporanRepository(db)
+        self.notif_repo = NotifikasiRepository(db)
+        self.user_repo = UserRepository(db)
 
     def ambil_semua_laporan(self):
         """Ambil semua laporan"""
@@ -52,7 +57,7 @@ class LaporanService:
             
         return self.repo.update(laporan_id, data.model_dump(exclude_unset=True))
 
-    def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate, dosen_id: int):
+    async def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate, dosen_id: int):
         """Update nilai laporan oleh dosen (dengan optional catatan)"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
@@ -67,9 +72,42 @@ class LaporanService:
         if data.catatan:
             update_data["catatan"] = data.catatan
             
-        return self.repo.update(laporan_id, update_data)
+        updated_laporan = self.repo.update(laporan_id, update_data)
 
-    def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate, dosen_id: int):
+        # --- NOTIFIKASI KE MAHASISWA ---
+        mahasiswa = self.user_repo.get_by_id(laporan.mahasiswa_id)
+        dosen = self.user_repo.get_by_id(dosen_id)
+
+        if mahasiswa:
+            # 1. Notifikasi sistem
+            self.notif_repo.create({
+                "user_id": mahasiswa.user_id,
+                "isi_notifikasi": f"Laporan magang Anda telah dinilai oleh {dosen.nama} dengan nilai {data.nilai}.",
+                "target_url": f"/mahasiswa/laporan/{laporan_id}"
+            })
+
+            # 2. Email ke mahasiswa
+            pesan_email = f"""
+            <html>
+            <body>
+                <h3>Hasil Penilaian Laporan Magang</h3>
+                <p>Halo {mahasiswa.nama},</p>
+                <p>Laporan magang Anda telah selesai dinilai oleh <b>{dosen.nama}</b>.</p>
+                <p>Nilai: <b>{data.nilai}</b></p>
+                <p>Status: <b>{data.status}</b></p>
+                {f"<p>Catatan: {data.catatan}</p>" if data.catatan else ""}
+                <p>Silakan cek detail penilaian di sistem.</p>
+            </body>
+            </html>
+            """
+            try:
+                await kirim_email_notifikasi(mahasiswa.email, "Hasil Penilaian Laporan Magang", pesan_email)
+            except Exception as e:
+                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+
+        return updated_laporan
+
+    async def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate, dosen_id: int):
         """Update catatan revisi oleh dosen ketika menolak laporan"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
@@ -82,7 +120,36 @@ class LaporanService:
             "dosen_id": dosen_id
         }
         
-        return self.repo.update(laporan_id, update_data)
+        updated_laporan = self.repo.update(laporan_id, update_data)
+
+        # --- NOTIFIKASI KE MAHASISWA ---
+        mahasiswa = self.user_repo.get_by_id(laporan.mahasiswa_id)
+        dosen = self.user_repo.get_by_id(dosen_id)
+
+        if mahasiswa:
+            self.notif_repo.create({
+                "user_id": mahasiswa.user_id,
+                "isi_notifikasi": f"Laporan magang Anda memerlukan revisi dari {dosen.nama}.",
+                "target_url": f"/mahasiswa/laporan/{laporan_id}"
+            })
+
+            pesan_email = f"""
+            <html>
+            <body>
+                <h3>Revisi Laporan Magang</h3>
+                <p>Halo {mahasiswa.nama},</p>
+                <p>Laporan magang Anda memerlukan revisi menurut dosen pembimbing <b>{dosen.nama}</b>.</p>
+                <p>Catatan Revisi: <i>"{data.catatan}"</i></p>
+                <p>Silakan segera lakukan perbaikan dan unggah kembali laporan Anda.</p>
+            </body>
+            </html>
+            """
+            try:
+                await kirim_email_notifikasi(mahasiswa.email, "Revisi Laporan Magang", pesan_email)
+            except Exception as e:
+                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+
+        return updated_laporan
 
     def hapus_laporan(self, laporan_id: int, user_id: int):
         """Hapus laporan"""

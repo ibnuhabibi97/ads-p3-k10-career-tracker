@@ -20,6 +20,9 @@ class UserRepository:
     def get_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
 
+    def get_all_staff(self):
+        return self.db.query(Staff).all()
+
     # 2. UBAH FUNGSI CREATE
     def create(self, user_data: UserCreate, hashed_password: str):
         # Simpan user sebagai entitas role-specific agar SQLAlchemy menangani
