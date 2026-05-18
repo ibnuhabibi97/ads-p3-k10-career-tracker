@@ -12,13 +12,13 @@ class Logbook(Base):
     dosen_id = Column(Integer, ForeignKey("dosen.user_id"), nullable=False)
     
     tanggal_log = Column(Date, default=datetime.date.today)
-    waktu_mulai = Column(DateTime, nullable=False)
-    waktu_selesai = Column(DateTime, nullable=False)
-    durasi_kegiatan = Column(Interval, nullable=False) # Durasi dalam jam
-    keterangan = Column(String, nullable=False)
+    waktu_mulai = Column(DateTime, nullable=True)
+    waktu_selesai = Column(DateTime, nullable=True)
+    durasi_kegiatan = Column(Interval, nullable=True) 
+    keterangan = Column(String, nullable=True)
     media = Column(String, nullable=True)
-    dokumentasi = Column(String, nullable=True) # Path/URL file
-    jenis_kegiatan = Column(String, nullable=False)
+    dokumentasi = Column(String, nullable=True) 
+    jenis_kegiatan = Column(String, nullable=True)
 
     # Relasi
     laporan = relationship("Laporan", back_populates="logbooks")

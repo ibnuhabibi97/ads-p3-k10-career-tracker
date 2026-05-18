@@ -16,3 +16,4 @@ class Lowongan(Base):
 
     # Relasi
     pendaftaran = relationship("Pendaftaran", back_populates="lowongan")
+    laporans = relationship("Laporan", back_populates="lowongan")
