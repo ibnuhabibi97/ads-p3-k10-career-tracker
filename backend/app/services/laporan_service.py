@@ -1,15 +1,19 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+import datetime
 from app.repositories.laporan_repository import LaporanRepository
+from app.repositories.logbook_repository import LogbookRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanStatus
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
 from app.services.email_service import kirim_email_notifikasi
+from app.models.laporan import Laporan
 
 class LaporanService:
     def __init__(self, db: Session):
         self.repo = LaporanRepository(db)
+        self.logbook_repo = LogbookRepository(db)
         self.notif_repo = NotifikasiRepository(db)
         self.user_repo = UserRepository(db)
 
@@ -39,6 +43,45 @@ class LaporanService:
     def ambil_laporan_dosen(self, dosen_id: int):
         """Ambil semua laporan yang dinilai oleh dosen tertentu"""
         return self.repo.get_by_dosen_id(dosen_id)
+
+    def inisialisasi_laporan(self, mahasiswa_id: int, lowongan_id: int):
+        """Inisialisasi laporan (Internship Record) dan Logbook kosong saat diterima."""
+        # 1. Cek apakah sudah ada
+        laporan_ada = self.repo.db.query(Laporan).filter(
+            Laporan.mahasiswa_id == mahasiswa_id,
+            Laporan.lowongan_id == lowongan_id
+        ).first()
+        
+        if laporan_ada:
+            return laporan_ada
+
+        # 2. Ambil dosen pembimbing (pilih dosen pertama sebagai default jika ada)
+        all_dosen = self.user_repo.get_all_dosen()
+        dosen_id = all_dosen[0].user_id if all_dosen else None
+
+        # 3. Buat Laporan
+        laporan_data = {
+            "mahasiswa_id": mahasiswa_id,
+            "lowongan_id": lowongan_id,
+            "dosen_id": dosen_id,
+            "status": LaporanStatus.ONGOING
+        }
+        db_laporan = self.repo.create(laporan_data)
+
+        # 4. Buat Logbook kosong (misal 30 hari ke depan)
+        today = datetime.date.today()
+        for i in range(30):
+            log_date = today + datetime.timedelta(days=i)
+            self.logbook_repo.create({
+                "laporan_id": db_laporan.laporan_id,
+                "mahasiswa_id": mahasiswa_id,
+                "dosen_id": dosen_id,
+                "tanggal_log": log_date,
+                "keterangan": "",
+                "jenis_kegiatan": ""
+            })
+        
+        return db_laporan
 
     def tambah_laporan(self, data: LaporanCreate, user_id: int):
         """Buat laporan baru"""

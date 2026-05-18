@@ -5,12 +5,15 @@ from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranUpdate, PendaftaranStatus
 from app.services.email_service import kirim_email_notifikasi
+from app.services.laporan_service import LaporanService
 
 class PendaftaranService:
     def __init__(self, db: Session):
+        self.db = db
         self.repo = PendaftaranRepository(db)
         self.notif_repo = NotifikasiRepository(db)
         self.user_repo = UserRepository(db)
+        self.laporan_service = LaporanService(db)
 
     async def submit_pendaftaran(self, pendaftaran_data: PendaftaranCreate, mahasiswa_id: int):
         # Cek apakah mahasiswa sudah mendaftar di lowongan ini
@@ -68,6 +71,16 @@ class PendaftaranService:
         # Update hanya field status_seleksi
         update_data = {"status_seleksi": status_baru}
         updated = self.repo.update(pendaftaran_id, update_data)
+
+        # --- INISIALISASI LAPORAN & LOGBOOK JIKA DITERIMA ---
+        if status_baru == PendaftaranStatus.ACCEPTED:
+            try:
+                self.laporan_service.inisialisasi_laporan(
+                    mahasiswa_id=db_pendaftaran.mahasiswa_id,
+                    lowongan_id=db_pendaftaran.lowongan_id
+                )
+            except Exception as e:
+                print(f"Gagal inisialisasi laporan: {e}")
 
         # --- NOTIFIKASI KE MAHASISWA ---
         mahasiswa = self.user_repo.get_by_id(db_pendaftaran.mahasiswa_id)
