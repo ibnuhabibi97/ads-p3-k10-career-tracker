@@ -9,6 +9,7 @@ from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanStat
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
 from app.services.email_service import kirim_email_notifikasi
 from app.models.laporan import Laporan
+from app.models.logbook import Logbook
 
 class LaporanService:
     def __init__(self, db: Session):
@@ -68,18 +69,22 @@ class LaporanService:
         }
         db_laporan = self.repo.create(laporan_data)
 
-        # 4. Buat Logbook kosong (misal 30 hari ke depan)
+        # 4. Buat Logbook kosong secara batch (misal 30 hari ke depan)
         today = datetime.date.today()
+        logbooks_to_add = []
         for i in range(30):
             log_date = today + datetime.timedelta(days=i)
-            self.logbook_repo.create({
-                "laporan_id": db_laporan.laporan_id,
-                "mahasiswa_id": mahasiswa_id,
-                "dosen_id": dosen_id,
-                "tanggal_log": log_date,
-                "keterangan": "",
-                "jenis_kegiatan": ""
-            })
+            logbooks_to_add.append(Logbook(
+                laporan_id=db_laporan.laporan_id,
+                mahasiswa_id=mahasiswa_id,
+                dosen_id=dosen_id,
+                tanggal_log=log_date,
+                keterangan="",
+                jenis_kegiatan=""
+            ))
+        
+        self.repo.db.add_all(logbooks_to_add)
+        self.repo.db.commit()
         
         return db_laporan
 
