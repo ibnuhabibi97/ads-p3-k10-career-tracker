@@ -7,7 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,16 +16,17 @@ export default function Login() {
     setError('');
     setIsLoading(true);
     
-    const result = await login(formData.email, formData.password);
+    const result = await login(formData.identifier, formData.password);
     
     if (result.success) {
-      // Redirect berdasarkan role dari backend
+      // Redirect berdasarkan role dari backend (normalisasi ke UPPERCASE)
+      const userRole = result.role.toUpperCase();
       const dashboardMap = {
         MAHASISWA: '/mahasiswa/dashboard',
         DOSEN: '/dosen/dashboard',
         STAFF: '/staff/dashboard',
       };
-      navigate(dashboardMap[result.role] || '/');
+      navigate(dashboardMap[userRole] || '/');
     } else {
       setError(result.message);
     }
@@ -57,7 +58,7 @@ export default function Login() {
         {/* Input Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="email" className="text-sm font-semibold text-gray-700 block mb-1">Email</label>
+            <label htmlFor="identifier" className="text-sm font-semibold text-gray-700 block mb-1">Username atau Email</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400" aria-hidden="true">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,13 +66,13 @@ export default function Login() {
                 </svg>
               </span>
               <input
-                id="email"
-                type="email"
+                id="identifier"
+                type="text"
                 required
-                placeholder="Masukkan email"
+                placeholder="Masukkan username atau email"
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                value={formData.identifier}
+                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
               />
             </div>
           </div>
