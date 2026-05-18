@@ -13,7 +13,7 @@ from app.core.config import settings
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def _jwt_secret_key() -> str:
+def get_jwt_secret_key() -> str:
     secret_key = str(settings.SECRET_KEY)
     if len(secret_key.encode("utf-8")) < 32:
         return hashlib.sha256(secret_key.encode("utf-8")).hexdigest()
@@ -37,7 +37,7 @@ def buat_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> 
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, _jwt_secret_key(), algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, get_jwt_secret_key(), algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 # --- FUNGSI DEPENDENCY (AUTENTIKASI) ---
@@ -49,7 +49,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, _jwt_secret_key(), algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[settings.ALGORITHM])
         
         #Ekstrak id dari token JWT
         username: str = payload.get("sub")

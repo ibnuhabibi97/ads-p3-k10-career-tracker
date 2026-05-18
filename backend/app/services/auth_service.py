@@ -9,7 +9,7 @@ from app.schemas.user_schema import UserCreate
 from app.core.config import settings
 
 # --- IMPORT DARI SECURITY.PY ---
-from app.core.security import get_password_hash, verifikasi_password, buat_access_token
+from app.core.security import get_password_hash, verifikasi_password, buat_access_token, get_jwt_secret_key
 
 # Import dari email_service untuk fungsi lupa password
 from app.services.email_service import kirim_email_reset_password 
@@ -86,7 +86,7 @@ class AuthService:
 
     def reset_password(self, data_reset):
         try:
-            payload = jwt.decode(data_reset.token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            payload = jwt.decode(data_reset.token, get_jwt_secret_key(), algorithms=[settings.ALGORITHM])
             username: str = payload.get("sub")
             token_type: str = payload.get("type")
             
