@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.laporan import Laporan
+from app.schemas.laporan_schema import LaporanStatus
 
 class LaporanRepository:
     def __init__(self, db: Session):
@@ -19,7 +20,7 @@ class LaporanRepository:
 
     def get_pending_laporan(self):
         """Ambil semua laporan yang masih pending (belum dinilai)"""
-        return self.db.query(Laporan).filter(Laporan.status == "Pending").all()
+        return self.db.query(Laporan).filter(Laporan.status == LaporanStatus.PENDING).all()
 
     def get_by_status(self, status: str):
         """Ambil laporan berdasarkan status"""

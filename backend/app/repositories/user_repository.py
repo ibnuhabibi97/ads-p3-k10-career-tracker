@@ -23,6 +23,9 @@ class UserRepository:
     def get_all_staff(self):
         return self.db.query(Staff).all()
 
+    def get_all_dosen(self):
+        return self.db.query(Dosen).all()
+
     # 2. UBAH FUNGSI CREATE
     def create(self, user_data: UserCreate, hashed_password: str):
         # Simpan user sebagai entitas role-specific agar SQLAlchemy menangani
