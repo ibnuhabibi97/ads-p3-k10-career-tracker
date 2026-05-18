@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function DaftarMagang() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [lowonganList, setLowonganList] = useState([]);
   const [formData, setFormData] = useState({
-    lowongan_id: '',
+    lowongan_id: location.state?.lowongan_id || '',
     file_cv: null,
     file_rekomendasi: null
   });
@@ -22,6 +23,11 @@ export default function DaftarMagang() {
       try {
         const response = await api.get('/lowongan/aktif');
         setLowonganList(response.data);
+
+        // Jika ada state lowongan_id dari navigasi, pastikan terpasang
+        if (location.state?.lowongan_id) {
+          setFormData(prev => ({ ...prev, lowongan_id: location.state.lowongan_id }));
+        }
       } catch (err) {
         toast.error('Gagal memuat daftar lowongan.');
       } finally {
@@ -29,10 +35,10 @@ export default function DaftarMagang() {
       }
     };
     fetchLowongan();
-  }, []);
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+...
     
     if (!formData.lowongan_id || !formData.file_cv || !formData.file_rekomendasi) {
       toast.error('Semua berkas dan pilihan lowongan wajib diisi.');
