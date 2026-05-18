@@ -20,6 +20,10 @@ class PendaftaranRepository:
         """Melihat semua lamaran milik seorang mahasiswa."""
         return self.db.query(Pendaftaran).filter(Pendaftaran.mahasiswa_id == mahasiswa_id).all()
 
+    def get_all(self):
+        """Mengambil semua daftar pendaftaran magang."""
+        return self.db.query(Pendaftaran).all()
+
     def get_by_lowongan(self, lowongan_id: int):
         """Melihat semua mahasiswa yang melamar ke suatu lowongan tertentu."""
         return self.db.query(Pendaftaran).filter(Pendaftaran.lowongan_id == lowongan_id).all()
