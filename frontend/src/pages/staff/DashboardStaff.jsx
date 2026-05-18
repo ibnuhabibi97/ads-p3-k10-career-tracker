@@ -1,30 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 export default function DashboardStaff() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [stats, setStats] = useState([
+    { label: 'Total Lowongan', count: 0, icon: '💼' },
+    { label: 'Total Pelamar', count: 0, icon: '👥' },
+    { label: 'Perlu Verifikasi', count: 0, icon: '📋' },
+    { label: 'Lowongan Aktif', count: 0, icon: '⚡' },
+  ]);
+  const [lowonganList, setLowonganList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const stats = [
-    { label: 'Total Lowongan', count: 15, icon: '💼' },
-    { label: 'Total Pelamar', count: 48, icon: '👥' },
-    { label: 'Perlu Verifikasi', count: 5, icon: '📋' },
-    { label: 'Lowongan Aktif', count: 8, icon: '⚡' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [lowonganRes, pendaftaranRes] = await Promise.all([
+          api.get('/lowongan/'),
+          api.get('/pendaftaran/')
+        ]);
+
+        const jobs = lowonganRes.data;
+        const apps = pendaftaranRes.data;
+
+        setLowonganList(jobs.slice(0, 5)); // Show latest 5
+
+        setStats([
+          { label: 'Total Lowongan', count: jobs.length, icon: '💼' },
+          { label: 'Total Pelamar', count: apps.length, icon: '👥' },
+          { label: 'Perlu Verifikasi', count: apps.filter(a => a.status_seleksi === 'PENDING').length, icon: '📋' },
+          { label: 'Lowongan Aktif', count: jobs.filter(j => j.is_active).length, icon: '⚡' },
+        ]);
+      } catch (err) {
+        console.error('Gagal memuat data dashboard staff:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const mainMenus = [
     { title: 'Kelola Lowongan', desc: 'CRUD data lowongan', icon: '⚙️', path: '/staff/kelola-lowongan' },
     { title: 'Tambah Lowongan', desc: 'Buat lowongan baru', icon: '➕', path: '/staff/tambah-lowongan' },
     { title: 'Verifikasi Pendaftaran', desc: 'Review lamaran', icon: '🔍', path: '/staff/verifikasi' },
     { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/staff/ubah-password' },
-  ];
-
-  const lowonganList = [
-    { perusahaan: 'PT Tech Indonesia', posisi: 'Frontend Developer', kuota: 5, pelamar: 12, status: 'Aktif' },
-    { perusahaan: 'CV Digital Creative', posisi: 'UI/UX Designer', kuota: 3, pelamar: 8, status: 'Aktif' },
-    { perusahaan: 'PT Data Solutions', posisi: 'Data Analyst', kuota: 4, pelamar: 15, status: 'Penuh' },
   ];
 
   return (
@@ -75,36 +99,44 @@ export default function DashboardStaff() {
             <h2 className="text-lg font-bold text-gray-800">Lowongan Terbaru</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                  <th className="py-4 px-6">Perusahaan</th>
-                  <th className="py-4 px-6">Posisi</th>
-                  <th className="py-4 px-6 text-center">Kuota</th>
-                  <th className="py-4 px-6 text-center">Pelamar</th>
-                  <th className="py-4 px-6 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {lowonganList.map((job, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50">
-                    <td className="py-4 px-6 font-medium text-gray-900">{job.perusahaan}</td>
-                    <td className="py-4 px-6 text-gray-600">{job.posisi}</td>
-                    <td className="py-4 px-6 text-center font-medium">{job.kuota}</td>
-                    <td className="py-4 px-6 text-center font-medium">{job.pelamar}</td>
-                    <td className="py-4 px-6 text-center">
-                      <span className={`inline-block px-2.5 py-1 rounded text-xs font-semibold ${
-                        job.status === 'Aktif' 
-                          ? 'bg-green-50 text-green-700 border border-green-100' 
-                          : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {job.status}
-                      </span>
-                    </td>
+            {isLoading ? (
+              <div className="p-10 text-center text-gray-400 italic">Memuat data...</div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
+                    <th className="py-4 px-6">Perusahaan</th>
+                    <th className="py-4 px-6">Posisi</th>
+                    <th className="py-4 px-6 text-center">Kuota</th>
+                    <th className="py-4 px-6 text-center">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                  {lowonganList.length > 0 ? (
+                    lowonganList.map((job, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50">
+                        <td className="py-4 px-6 font-medium text-gray-900">{job.perusahaan}</td>
+                        <td className="py-4 px-6 text-gray-600">{job.judul_posisi}</td>
+                        <td className="py-4 px-6 text-center font-medium">{job.kuota}</td>
+                        <td className="py-4 px-6 text-center">
+                          <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase ${
+                            job.is_active 
+                              ? 'bg-green-50 text-green-700 border border-green-100' 
+                              : 'bg-red-50 text-red-700 border border-red-100'
+                          }`}>
+                            {job.is_active ? 'Aktif' : 'Non-Aktif'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="py-8 text-center text-gray-400 italic">Belum ada data lowongan.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </main>
