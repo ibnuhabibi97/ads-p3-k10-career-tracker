@@ -3,10 +3,10 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { DashboardSkeleton } from '../../components/Skeleton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function LaporanAkhir() {
-  const { user } = useAuth();
+  const { laporanId } = useParams();
   const navigate = useNavigate();
   const [currentLaporan, setCurrentLaporan] = useState(null);
   const [logbooks, setLogbooks] = useState([]);
@@ -17,16 +17,12 @@ export default function LaporanAkhir() {
   const fetchData = async () => {
     setIsFetching(true);
     try {
-      const response = await api.get(`/laporan/mahasiswa/${user.user_id}`);
-      if (response.data.length > 0) {
-        const laporan = response.data.find(l => l.status === 'ONGOING') || response.data[0];
-        setCurrentLaporan(laporan);
-        setLogbooks(laporan.logbooks || []);
-      } else {
-        setCurrentLaporan(null);
-      }
+      const response = await api.get(`/laporan/${laporanId}`);
+      setCurrentLaporan(response.data);
+      setLogbooks(response.data.logbooks || []);
     } catch (err) {
-      console.error('Gagal memuat data:', err);
+      toast.error('Gagal memuat data.');
+      navigate('/mahasiswa/laporan');
     } finally {
       setIsFetching(false);
     }
@@ -34,7 +30,7 @@ export default function LaporanAkhir() {
 
   useEffect(() => {
     fetchData();
-  }, [user.user_id]);
+  }, [laporanId]);
 
   const handleFinalSubmit = async () => {
     if (!selectedFile && !currentLaporan?.dokumen_laporan) {
@@ -73,16 +69,7 @@ export default function LaporanAkhir() {
 
   if (isFetching) return <DashboardSkeleton />;
 
-  if (!currentLaporan) {
-    return (
-      <div className="max-w-4xl mx-auto py-20 text-center space-y-6">
-        <div className="text-8xl">🏜️</div>
-        <h2 className="text-2xl font-black text-gray-900">Belum Ada Program Magang Aktif</h2>
-        <p className="text-gray-500 max-w-sm mx-auto">Anda perlu diterima di salah satu lowongan untuk memulai.</p>
-        <button onClick={() => window.location.href='/mahasiswa/lowongan'} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl">Cari Lowongan</button>
-      </div>
-    );
-  }
+  if (!currentLaporan) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20">
