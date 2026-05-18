@@ -1,86 +1,123 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import Home from '../pages/home/Home';
-import Login from '../pages/auth/Login';
-import RegisterMahasiswa from '../pages/auth/RegisterMahasiswa';
-import RegisterDosenStaff from '../pages/auth/RegisterDosenStaff';
-import ChangePassword from '../pages/auth/ChangePassword';
+import { lazy, Suspense } from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
 
-// Import Halaman Mahasiswa
-import DashboardMahasiswa from '../pages/mahasiswa/DashboardMahasiswa';
-import DaftarMagang from '../pages/mahasiswa/DaftarMagang';
-import Dokumen from '../pages/mahasiswa/Dokumen';
-import HubungiDosen from '../pages/mahasiswa/HubungiDoesn';
-import LaporanAkhir from '../pages/mahasiswa/LaporanAkhir';
-import LihatLowongan from '../pages/mahasiswa/LihatLowongan';
-import Logbook from '../pages/mahasiswa/Logbook';
+// Lazy loading components
+const Home = lazy(() => import('../pages/home/Home'));
+const Login = lazy(() => import('../pages/auth/Login'));
+const RegisterMahasiswa = lazy(() => import('../pages/auth/RegisterMahasiswa'));
+const RegisterDosenStaff = lazy(() => import('../pages/auth/RegisterDosenStaff'));
+const ChangePassword = lazy(() => import('../pages/auth/ChangePassword'));
 
-// Import Halaman Dosen
-import DashboardDosen from '../pages/dosen/DashboardDosen';
-import BerikanNilai from '../pages/dosen/BerikanNilai';
-import SuratRekomendasi from '../pages/dosen/SuratRekomendasi';
-import TinjauProgres from '../pages/dosen/TinjauProgres';
+// Halaman Mahasiswa
+const DashboardMahasiswa = lazy(() => import('../pages/mahasiswa/DashboardMahasiswa'));
+const DaftarMagang = lazy(() => import('../pages/mahasiswa/DaftarMagang'));
+const Dokumen = lazy(() => import('../pages/mahasiswa/Dokumen'));
+const HubungiDosen = lazy(() => import('../pages/mahasiswa/HubungiDoesn'));
+const LaporanAkhir = lazy(() => import('../pages/mahasiswa/LaporanAkhir'));
+const LihatLowongan = lazy(() => import('../pages/mahasiswa/LihatLowongan'));
+const Logbook = lazy(() => import('../pages/mahasiswa/Logbook'));
 
-// Import Halaman Staff
-import DashboardStaff from '../pages/staff/DashboardStaff';
-import KelolaLowongan from '../pages/staff/KelolaLowongan';
-import TambahLowongan from '../pages/staff/TambahLowongan';
-import VerifikasiPendaftaran from '../pages/staff/VerifikasiPendaftaran';
+// Halaman Dosen
+const DashboardDosen = lazy(() => import('../pages/dosen/DashboardDosen'));
+const BerikanNilai = lazy(() => import('../pages/dosen/BerikanNilai'));
+const SuratRekomendasi = lazy(() => import('../pages/dosen/SuratRekomendasi'));
+const TinjauProgres = lazy(() => import('../pages/dosen/TinjauProgres'));
+
+// Halaman Staff
+const DashboardStaff = lazy(() => import('../pages/staff/DashboardStaff'));
+const KelolaLowongan = lazy(() => import('../pages/staff/KelolaLowongan'));
+const TambahLowongan = lazy(() => import('../pages/staff/TambahLowongan'));
+const VerifikasiPendaftaran = lazy(() => import('../pages/staff/VerifikasiPendaftaran'));
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-screen bg-gray-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+  </div>
+);
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Home />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <Home />
+      </Suspense>
+    ),
   },
   {
     path: '/login',
-    element: <Login />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <Login />
+      </Suspense>
+    ),
   },
   {
     path: '/register/mahasiswa',
-    element: <RegisterMahasiswa />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <RegisterMahasiswa />
+      </Suspense>
+    ),
   },
   {
     path: '/register/dosen-staff',
-    element: <RegisterDosenStaff />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <RegisterDosenStaff />
+      </Suspense>
+    ),
   },
   // Main Routes untuk Mahasiswa
   {
     path: '/mahasiswa',
-    element: <ProtectedRoute allowedRoles={['MAHASISWA']} />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ProtectedRoute allowedRoles={['MAHASISWA']} />
+      </Suspense>
+    ),
     children: [
-      { path: 'dashboard', element: <DashboardMahasiswa /> },
-      { path: 'daftar', element: <DaftarMagang /> },
-      { path: 'dokumen', element: <Dokumen /> },
-      { path: 'hubungi-dosen', element: <HubungiDosen /> },
-      { path: 'laporan-akhir', element: <LaporanAkhir /> },
-      { path: 'lowongan', element: <LihatLowongan /> },
-      { path: 'logbook', element: <Logbook /> },
-      { path: 'ubah-password', element: <ChangePassword /> },
+      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardMahasiswa /></Suspense> },
+      { path: 'daftar', element: <Suspense fallback={<LoadingFallback />}><DaftarMagang /></Suspense> },
+      { path: 'dokumen', element: <Suspense fallback={<LoadingFallback />}><Dokumen /></Suspense> },
+      { path: 'hubungi-dosen', element: <Suspense fallback={<LoadingFallback />}><HubungiDosen /></Suspense> },
+      { path: 'laporan-akhir', element: <Suspense fallback={<LoadingFallback />}><LaporanAkhir /></Suspense> },
+      { path: 'lowongan', element: <Suspense fallback={<LoadingFallback />}><LihatLowongan /></Suspense> },
+      { path: 'logbook', element: <Suspense fallback={<LoadingFallback />}><Logbook /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
     ],
   },
   // Main Routes untuk Dosen
   {
     path: '/dosen',
-    element: <ProtectedRoute allowedRoles={['DOSEN']} />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ProtectedRoute allowedRoles={['DOSEN']} />
+      </Suspense>
+    ),
     children: [
-      { path: 'dashboard', element: <DashboardDosen /> },
-      { path: 'nilai', element: <BerikanNilai /> },
-      { path: 'rekomendasi', element: <SuratRekomendasi /> },
-      { path: 'progres', element: <TinjauProgres /> },
-      { path: 'ubah-password', element: <ChangePassword /> },
+      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardDosen /></Suspense> },
+      { path: 'nilai', element: <Suspense fallback={<LoadingFallback />}><BerikanNilai /></Suspense> },
+      { path: 'rekomendasi', element: <Suspense fallback={<LoadingFallback />}><SuratRekomendasi /></Suspense> },
+      { path: 'progres', element: <Suspense fallback={<LoadingFallback />}><TinjauProgres /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
     ],
   },
   // Main Routes untuk Staff
   {
     path: '/staff',
-    element: <ProtectedRoute allowedRoles={['STAFF']} />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ProtectedRoute allowedRoles={['STAFF']} />
+      </Suspense>
+    ),
     children: [
-      { path: 'dashboard', element: <DashboardStaff /> },
-      { path: 'kelola-lowongan', element: <KelolaLowongan /> },
-      { path: 'tambah-lowongan', element: <TambahLowongan /> },
-      { path: 'verifikasi', element: <VerifikasiPendaftaran /> },
-      { path: 'ubah-password', element: <ChangePassword /> },
+      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardStaff /></Suspense> },
+      { path: 'kelola-lowongan', element: <Suspense fallback={<LoadingFallback />}><KelolaLowongan /></Suspense> },
+      { path: 'tambah-lowongan', element: <Suspense fallback={<LoadingFallback />}><TambahLowongan /></Suspense> },
+      { path: 'verifikasi', element: <Suspense fallback={<LoadingFallback />}><VerifikasiPendaftaran /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
     ],
   },
   // Fallback jika route tidak ditemukan

@@ -18,10 +18,11 @@ export default function Header({ title, userName, userDetail, bgColor = 'bg-blue
       <div className="flex items-center gap-3">
         <button 
           onClick={handleBack}
-          className="hover:bg-white/20 p-2 rounded-full transition-colors group relative"
+          className="hover:bg-white/20 p-2 rounded-full transition-colors group relative focus:outline-none focus:ring-2 focus:ring-white/50"
+          aria-label="Kembali ke halaman sebelumnya"
           title="Kembali"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </button>
@@ -32,7 +33,7 @@ export default function Header({ title, userName, userDetail, bgColor = 'bg-blue
         <NotificationDropdown />
         <div className="text-right border-l border-white/20 pl-6 hidden sm:block">
           <p className="text-sm font-bold">{userName}</p>
-          <p className="text-[10px] text-white/70 uppercase font-black tracking-widest">{userDetail}</p>
+          <p className="text-[10px] text-white/70 uppercase font-black tracking-widest leading-none mt-0.5">{userDetail}</p>
         </div>
       </div>
     </header>
