@@ -23,9 +23,10 @@ class LaporanCreate(LaporanBase):
     lowongan_id: int
 
 
-#Update Schema (Untuk PUT/PATCH Request oleh Mahasiswa - hanya dokumen)
+#Update Schema (Untuk PUT/PATCH Request oleh Mahasiswa)
 class LaporanUpdate(BaseModel):
     dokumen_laporan: Optional[str] = None
+    status: Optional[LaporanStatus] = None
 
 
 #Response(Untuk Return API)
