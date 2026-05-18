@@ -28,13 +28,14 @@ class AuthService:
         hashed_pwd = get_password_hash(user_data.password)
         return self.repo.create(user_data, hashed_pwd)
 
-    def login_user(self, username_input: str, password_input: str):
-        user = self.repo.get_by_username(username_input)
+    def login_user(self, identifier: str, password_input: str):
+        # Cari berdasarkan username atau email
+        user = self.repo.get_by_username(identifier) or self.repo.get_by_email(identifier)
         
         if not user or not verifikasi_password(password_input, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Username atau password salah",
+                detail="Username/Email atau password salah",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
@@ -44,7 +45,16 @@ class AuthService:
             "access_token": access_token,
             "token_type": "bearer",
             "role": user.role.value,
-            "user_id": user.user_id
+            "user_id": user.user_id,
+            "user": {
+                "user_id": user.user_id,
+                "username": user.username,
+                "nama": user.nama,
+                "role": user.role.value,
+                "email": user.email,
+                "nim": getattr(user, 'nim', None),
+                "nip": getattr(user, 'nip', None)
+            }
         }
 
     def ubah_password(self, username_sekarang: str, data_password):

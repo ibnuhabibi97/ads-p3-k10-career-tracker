@@ -114,6 +114,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+    user: Optional[dict] = None
 
 class ChangePasswordRequest(BaseModel):
     password_lama: str
