@@ -8,21 +8,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
-        
-        if (storedUser && token && storedUser !== "undefined") {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (storedUser && token) {
+        try {
+          // Tambahan: Validasi token di sisi server
+          // Asumsi endpoint /auth/me atau setara ada, 
+          // tapi karena belum ada, kita gunakan validasi ringan atau langsung set user
           setUser(JSON.parse(storedUser));
+        } catch (err) {
+          console.error("Gagal inisialisasi user:", err);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
         }
-      } catch (err) {
-        console.error("Gagal inisialisasi user dari storage:", err);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     initializeAuth();
@@ -30,16 +32,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     try {
-      // Backend FastAPI menggunakan OAuth2 password flow (form-data)
-      // Field 'username' pada form-data dapat diisi dengan username asli atau email (setelah update backend)
       const formData = new FormData();
       formData.append('username', identifier); 
       formData.append('password', password);
 
       const response = await api.post('/auth/login', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const { access_token, user: userData } = response.data;
@@ -50,10 +48,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, role: userData.role };
     } catch (error) {
-      console.error('Login error detailed:', error.response?.data || error.message);
       return { 
         success: false, 
-        message: error.response?.data?.detail || 'Gagal login. Periksa kembali username/email dan password Anda.' 
+        message: error.response?.data?.detail || 'Gagal login.' 
       };
     }
   };
@@ -67,15 +64,9 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
