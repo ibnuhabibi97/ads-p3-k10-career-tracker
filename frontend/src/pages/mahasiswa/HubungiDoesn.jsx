@@ -1,29 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function HubungiDosen() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ subjek: '', pesan: '' });
+  const { user } = useAuth();
+  const [dosenList, setDosenList] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [formData, setFormData] = useState({ dosen_id: '', file_draft: null });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const handleSubmit = (e) => {
+  const fetchData = async () => {
+    try {
+      const [dosenRes, historyRes] = await Promise.all([
+        api.get('/users/dosen'),
+        api.get('/surat-rekomendasi/mahasiswa/saya')
+      ]);
+      setDosenList(dosenRes.data);
+      setHistory(historyRes.data);
+    } catch (err) {
+      console.error('Gagal memuat data:', err);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Pesan konsultasi berhasil dikirim ke dosen pembimbing!");
-    setFormData({ subjek: '', pesan: '' });
+    if (!formData.dosen_id || !formData.file_draft) {
+      alert("Silakan pilih dosen dan unggah draf surat!");
+      return;
+    }
+
+    setIsLoading(true);
+    const data = new FormData();
+    data.append('dosen_id', formData.dosen_id);
+    data.append('file_draft', formData.file_draft);
+
+    try {
+      const response = await api.post('/surat-rekomendasi/', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (response.status === 201) {
+        alert("Permintaan surat rekomendasi berhasil dikirim!");
+        setFormData({ dosen_id: '', file_draft: null });
+        fetchData();
+      }
+    } catch (err) {
+      alert(err.response?.data?.detail || "Gagal mengirim permintaan.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header 
-        title="Dashboard Mahasiswa" 
-        userName="Muhammad Rizki" 
-        userDetail="NIM. 123456789" 
+        title="Surat Rekomendasi" 
+        userName={user?.nama} 
+        userDetail={`NIM. ${user?.nim}`} 
         bgColor="bg-blue-600" 
       />
 
-      <main className="max-w-6xl mx-auto px-6 mt-6">
-        {/* Tombol Kembali Atas */}
-        <div className="flex justify-end mb-4">
+      <main className="max-w-6xl mx-auto px-6 mt-6 space-y-6">
+        <div className="flex justify-end">
           <button 
             onClick={() => navigate(-1)} 
             className="px-4 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -32,108 +79,90 @@ export default function HubungiDosen() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Kolom Kiri: Profil Dosen Pembimbing */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col items-center text-center space-y-4">
-            <div className="w-20 h-20 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-md shadow-blue-100">
-              DA
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Form Request */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
             <div>
-              <h3 className="font-bold text-gray-900 text-base">Dr. Ahmad Fauzi, M.Kom</h3>
-              <p className="text-xs text-gray-400 font-medium mt-0.5">Dosen Pembimbing</p>
+              <h2 className="text-xl font-bold text-gray-900">Ajukan Rekomendasi</h2>
+              <p className="text-sm text-gray-500 mt-1">Pilih dosen dan unggah draf surat rekomendasi Anda (PDF).</p>
             </div>
 
-            {/* Info Detail List */}
-            <div className="w-full space-y-3 pt-3 text-left border-t border-gray-100">
-              <div className="text-xs">
-                <span className="block text-gray-400 font-medium">NIP</span>
-                <span className="text-gray-700 font-semibold">198501152010121001</span>
-              </div>
-              <div className="text-xs">
-                <span className="block text-gray-400 font-medium">Email</span>
-                <span className="text-gray-700 font-semibold break-all">ahmad.fauzi@university.ac.id</span>
-              </div>
-              <div className="text-xs">
-                <span className="block text-gray-400 font-medium">Telepon</span>
-                <span className="text-gray-700 font-semibold">+62 812-3456-7890</span>
-              </div>
-              <div className="text-xs">
-                <span className="block text-gray-400 font-medium">Jurusan</span>
-                <span className="text-gray-700 font-semibold">Teknik Informatika</span>
-              </div>
-              <div className="text-xs">
-                <span className="block text-gray-400 font-medium">Ruang Kerja</span>
-                <span className="text-gray-700 font-semibold">Gedung A, Lantai 3, Ruang 301</span>
-              </div>
-            </div>
-
-            {/* Bidang Keahlian Badges */}
-            <div className="w-full pt-3 border-t border-gray-100 text-left">
-              <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-2">Bidang Keahlian:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {['Machine Learning', 'Data Science', 'AI'].map((skill, idx) => (
-                  <span key={idx} className="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[10px] font-semibold">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Kolom Kanan: Form Kirim Pesan & Info Jam */}
-          <div className="lg:col-span-2 space-y-4">
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <h2 className="text-base font-bold text-gray-800">Kirim Pesan</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Kirim pesan kepada dosen pembimbing Anda untuk konsultasi atau pertanyaan.</p>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Pilih Dosen</label>
+                <select 
+                  required
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
+                  value={formData.dosen_id}
+                  onChange={(e) => setFormData({ ...formData, dosen_id: e.target.value })}
+                >
+                  <option value="">Pilih dosen...</option>
+                  {dosenList.map((d) => (
+                    <option key={d.user_id} value={d.user_id}>{d.nama} ({d.nip || 'N/A'})</option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Subjek Pesan</label>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Unggah Draf Surat (PDF)</label>
                 <input 
-                  type="text" required placeholder="Contoh: Konsultasi Progres Magang"
-                  className="w-full p-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition-all"
-                  value={formData.subjek}
-                  onChange={(e) => setFormData({ ...formData, subjek: e.target.value })}
+                  type="file" 
+                  required 
+                  accept=".pdf"
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all"
+                  onChange={(e) => setFormData({ ...formData, file_draft: e.target.files[0] })}
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Isi Pesan</label>
-                <textarea 
-                  rows="6" required placeholder="Tulis pesan Anda di sini..."
-                  className="w-full p-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition-all"
-                  value={formData.pesan}
-                  onChange={(e) => setFormData({ ...formData, pesan: e.target.value })}
-                ></textarea>
-                <span className="text-[10px] text-gray-400 mt-1 block">Pastikan pesan Anda jelas dan sopan.</span>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setFormData({ subjek: '', pesan: '' })}
-                  className="px-5 py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  Reset
-                </button>
-                <button 
-                  type="submit" 
-                  className="px-6 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 flex items-center gap-1.5"
-                >
-                  🚀 Kirim Pesan
-                </button>
-              </div>
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className={`w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 flex items-center justify-center gap-2 ${
+                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+              >
+                {isLoading && (
+                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                Kirim Permintaan
+              </button>
             </form>
+          </div>
 
-            {/* Kotak Info Jam Konsultasi */}
-            <div className="bg-blue-50/40 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
-              <span className="text-lg">📅</span>
-              <div className="text-xs">
-                <p className="font-bold text-blue-950 mb-0.5">Jam Konsultasi</p>
-                <p className="text-blue-800/80 font-medium">Senin - Jumat: 09.00 - 16.00 WIB</p>
-                <p className="text-blue-600/70 mt-0.5">Pesan akan dibalas dalam 1x24 jam pada hari kerja.</p>
-              </div>
+          {/* History Request */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
+            <h2 className="text-xl font-bold text-gray-900">Riwayat Pengajuan</h2>
+            <div className="space-y-4">
+              {isLoadingData ? (
+                <p className="text-center text-gray-400 text-sm py-8">Memuat riwayat...</p>
+              ) : history.length > 0 ? (
+                history.map((item) => (
+                  <div key={item.rekomendasi_id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/30 flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">{item.dosen_nama}</p>
+                      <p className="text-[10px] text-gray-400 font-medium">{new Date(item.tanggal_pengajuan).toLocaleDateString('id-ID')}</p>
+                      <div className="mt-2 flex gap-2">
+                        <a href={item.dokumen_draft} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 font-bold hover:underline">Draft</a>
+                        {item.dokumen_final && (
+                          <a href={item.dokumen_final} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-600 font-bold hover:underline">Surat TTD</a>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                      item.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                      item.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-400 text-sm py-8 italic">Belum ada riwayat pengajuan.</p>
+              )}
             </div>
           </div>
         </div>

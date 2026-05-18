@@ -230,7 +230,7 @@ export default function LihatLowongan() {
                     onClick={() => navigate('/mahasiswa/daftar', { state: { lowongan_id: selectedJob.lowongan_id } })}
                     className="flex-[2] py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                   >
-                    🚀 Lamar Sekarang
+                    Lamar Sekarang
                   </button>
                 </div>
               </>

@@ -23,8 +23,7 @@ export default function DashboardMahasiswa() {
         const listPendaftaran = resPendaftaran.data;
         const pendaftaranTerbaru = listPendaftaran.length > 0 ? listPendaftaran[0] : null;
 
-        // Ambil data logbook (bisa ditambahkan endpoint khusus stats di masa depan)
-        // Untuk sekarang kita fetch list-nya saja jika user_id ada
+        // Ambil data logbook
         let logCount = 0;
         if (pendaftaranTerbaru) {
              const resLogbook = await api.get(`/logbook/mahasiswa/${user.user_id}`);
@@ -56,7 +55,7 @@ export default function DashboardMahasiswa() {
     { title: 'Lihat Lowongan', desc: 'Cari magang', icon: '🔍', path: '/mahasiswa/lowongan' },
     { title: 'Daftar Magang', desc: 'Kirim lamaran', icon: '🚀', path: '/mahasiswa/daftar' },
     { title: 'Logbook Harian', desc: 'Catat aktivitas', icon: '📖', path: '/mahasiswa/logbook' },
-    { title: 'Laporan Akhir', desc: 'Upload laporan', icon: '📤', path: '/mahasiswa/laporan-akhir' },
+    { title: 'Laporan Magang', desc: 'Upload laporan', icon: '📤', path: '/mahasiswa/laporan' },
     { title: 'Dokumen', desc: 'Kelola berkas', icon: '📄', path: '/mahasiswa/dokumen' },
     { title: 'Hubungi Dosen', desc: 'Minta rekomendasi', icon: '💬', path: '/mahasiswa/hubungi-dosen' },
   ];
@@ -149,3 +148,4 @@ export default function DashboardMahasiswa() {
     </div>
   );
 }
+

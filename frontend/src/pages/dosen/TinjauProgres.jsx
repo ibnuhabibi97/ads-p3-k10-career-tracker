@@ -98,7 +98,7 @@ export default function TinjauProgres() {
                             rel="noopener noreferrer"
                             className="inline-block mt-2 text-[10px] text-blue-600 font-bold hover:underline"
                           >
-                            📎 Lihat Dokumentasi
+                            Lihat Dokumentasi
                           </a>
                         )}
                       </div>

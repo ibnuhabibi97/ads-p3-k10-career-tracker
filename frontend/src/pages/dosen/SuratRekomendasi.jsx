@@ -100,7 +100,7 @@ export default function SuratRekomendasi() {
                     
                     <div className="pt-2">
                       <a href={req.dokumen_draft} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1">
-                        📄 Lihat Draft Surat dari Mahasiswa
+                        Lihat Draft Surat dari Mahasiswa
                       </a>
                     </div>
 
@@ -134,7 +134,7 @@ export default function SuratRekomendasi() {
                     {req.status === 'APPROVED' && req.dokumen_final && (
                       <div className="pt-2">
                         <a href={req.dokumen_final} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 font-bold hover:underline flex items-center gap-1">
-                          ✅ Lihat Surat Bertanda Tangan
+                          Lihat Surat Bertanda Tangan
                         </a>
                       </div>
                     )}

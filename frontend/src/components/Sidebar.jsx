@@ -8,7 +8,7 @@ const MENU_ITEMS = {
     { path: '/mahasiswa/lowongan', label: 'Lowongan Magang', icon: '💼' },
     { path: '/mahasiswa/daftar', label: 'Daftar Magang', icon: '📝' },
     { path: '/mahasiswa/riwayat', label: 'Riwayat Lamaran', icon: '📂' },
-    { path: '/mahasiswa/laporan-akhir', label: 'Laporan Akhir', icon: '📁' },
+    { path: '/mahasiswa/laporan', label: 'Laporan Magang', icon: '📁' },
     { path: '/mahasiswa/dokumen', label: 'Dokumen Saya', icon: '📑' },
     { path: '/mahasiswa/hubungi-dosen', label: 'Hubungi Dosen', icon: '💬' },
   ],
@@ -76,15 +76,16 @@ export default function Sidebar() {
           to={`/${role.toLowerCase()}/ubah-password`}
           className="flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
         >
-          <span className="text-xl opacity-80">🔐</span>
+          <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
           Ubah Password
         </Link>
         <div className="pt-4 border-t border-gray-100">
           <button 
             onClick={logout}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all duration-200"
           >
-            <span className="text-xl opacity-80">🚪</span>
             Keluar Sistem
           </button>
         </div>

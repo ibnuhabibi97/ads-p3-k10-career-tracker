@@ -107,7 +107,7 @@ export default function LaporanAkhir() {
         </div>
 
         <div className="bg-gray-900 rounded-[3rem] p-10 text-white space-y-8">
-           <h3 className="text-2xl font-black">Finalisasi 🚀</h3>
+           <h3 className="text-2xl font-black">Finalisasi</h3>
            <div className="space-y-4">
               <div className="border-2 border-dashed border-gray-700 rounded-3xl p-8 text-center cursor-pointer relative">
                  <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setSelectedFile(e.target.files[0])} />

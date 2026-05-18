@@ -71,7 +71,7 @@ export default function KelolaLowongan() {
                 onClick={() => navigate('/staff/tambah-lowongan')} 
                 className="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-xl hover:bg-purple-700 transition-colors shadow-md shadow-purple-100"
               >
-                + Tambah Baru
+                Tambah Baru
               </button>
               <button 
                 onClick={() => navigate(-1)} 
@@ -99,33 +99,33 @@ export default function KelolaLowongan() {
                     </div>
                     <p className="text-xs text-gray-400 font-bold uppercase tracking-tight">{job.perusahaan}</p>
                     <div className="flex items-center gap-4 pt-1 text-[10px] text-gray-500 font-medium">
-                      <span className="flex items-center gap-1">👥 Kuota: {job.kuota}</span>
-                      <span className="flex items-center gap-1">📍 {job.lokasi}</span>
-                      <span className="flex items-center gap-1">📅 Batas: {new Date(job.deadline).toLocaleDateString('id-ID')}</span>
+                      <span className="flex items-center gap-1">Kuota: {job.kuota}</span>
+                      <span className="flex items-center gap-1">Lokasi: {job.lokasi}</span>
+                      <span className="flex items-center gap-1">Batas: {new Date(job.deadline).toLocaleDateString('id-ID')}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => toggleStatus(job)}
-                      className={`p-2 rounded-xl transition-colors ${job.is_active ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors ${job.is_active ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-green-700 bg-green-50 hover:bg-green-100'}`}
                       title={job.is_active ? "Non-aktifkan" : "Aktifkan"}
                     >
-                      {job.is_active ? '⏸️' : '▶️'}
+                      {job.is_active ? 'Non-aktifkan' : 'Aktifkan'}
                     </button>
                     <button 
                       onClick={() => handleEdit(job)}
-                      className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
+                      className="px-3 py-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg text-[10px] font-bold uppercase transition-colors"
                       title="Edit Lowongan"
                     >
-                      ✏️
+                      Edit
                     </button>
                     <button 
                       onClick={() => handleDelete(job.lowongan_id)}
-                      className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
+                      className="px-3 py-1.5 text-red-700 bg-red-50 hover:bg-red-100 rounded-lg text-[10px] font-bold uppercase transition-colors"
                       title="Hapus Lowongan"
                     >
-                      🗑️
+                      Hapus
                     </button>
                   </div>
                 </div>
