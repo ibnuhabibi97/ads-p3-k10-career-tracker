@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
+import { TableSkeleton } from '../../components/Skeleton';
 
 export default function Logbook() {
   const navigate = useNavigate();
@@ -18,14 +19,15 @@ export default function Logbook() {
     file_dokumentasi: null
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isFetching, setIsFetching] = useState(true);
 
   const fetchLaporanAndLogs = async () => {
+    setIsFetching(true);
     try {
       // 1. Ambil data laporan mahasiswa untuk mendapatkan laporan_id dan dosen_id
       const laporanRes = await api.get(`/laporan/mahasiswa/${user.user_id}`);
       if (laporanRes.data.length > 0) {
-        const activeLaporan = laporanRes.data[0]; // Ambil yang pertama/terbaru
+        const activeLaporan = laporanRes.data[0]; 
         setLaporan(activeLaporan);
         
         // 2. Ambil logbook berdasarkan laporan_id tersebut
@@ -34,6 +36,8 @@ export default function Logbook() {
       }
     } catch (err) {
       console.error('Gagal memuat data logbook:', err);
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -43,36 +47,35 @@ export default function Logbook() {
 
   const handleSaveEntry = async (e) => {
     e.preventDefault();
-    setError('');
     
     if (!laporan) {
-      setError('Anda belum memiliki laporan magang aktif. Pastikan status pendaftaran Anda sudah diterima.');
+      toast.error('Anda belum memiliki laporan magang aktif.');
       return;
     }
 
     setIsLoading(true);
+    const loadingToast = toast.loading('Menyimpan entri...');
 
     const data = new FormData();
     data.append('laporan_id', laporan.laporan_id);
-    data.append('dosen_id', laporan.dosen_pembimbing);
+    data.append('dosen_id', laporan.dosen_id); // Gunakan field yang benar dari model backend
     data.append('waktu_mulai', formData.waktu_mulai);
     data.append('waktu_selesai', formData.waktu_selesai);
     data.append('jenis_kegiatan', formData.jenis_kegiatan);
     data.append('keterangan', formData.keterangan);
-    data.append('media', formData.media);
+    data.append('media', formData.media || '');
+    
     if (formData.file_dokumentasi) {
       data.append('file_dokumentasi', formData.file_dokumentasi);
     }
 
     try {
       const response = await api.post('/logbook/', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       if (response.status === 201) {
-        alert("Entry logbook berhasil disimpan!");
+        toast.success("Aktivitas harian berhasil dicatat!", { id: loadingToast });
         setFormData({
           waktu_mulai: '',
           waktu_selesai: '',
@@ -84,176 +87,176 @@ export default function Logbook() {
         fetchLaporanAndLogs();
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Gagal menyimpan entry logbook.');
+      toast.error(err.response?.data?.detail || 'Gagal menyimpan entri.', { id: loadingToast });
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isFetching) return <TableSkeleton />;
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Logbook Magang" 
-        userName={user?.nama} 
-        userDetail={`NIM. ${user?.nim}`} 
-        bgColor="bg-blue-600" 
-      />
-
-      <main className="max-w-4xl mx-auto px-6 mt-8">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-8">
-          <div className="flex justify-between items-center border-b border-gray-50 pb-4">
-            <h2 className="text-xl font-bold text-gray-900">Aktivitas Harian</h2>
-            <button 
-              onClick={() => navigate(-1)} 
-              className="px-4 py-1.5 bg-gray-50 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              Kembali
-            </button>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Logbook Aktivitas 📓</h2>
+          <p className="text-sm text-gray-500 font-medium">Dokumentasikan progres pengerjaan magang harian Anda.</p>
+        </div>
+        {!laporan && (
+          <div className="px-4 py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-xl border border-amber-100 animate-pulse">
+            ⚠️ Belum Memiliki Laporan Aktif
           </div>
+        )}
+      </div>
 
-          {!laporan && (
-            <div className="p-4 bg-amber-50 border border-amber-100 text-amber-700 rounded-xl text-sm font-medium">
-              ⚠️ Anda belum dapat mengisi logbook karena belum memiliki laporan magang aktif.
-            </div>
-          )}
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center">
-              {error}
-            </div>
-          )}
-
-          {/* Form Tambah Entry Baru */}
-          <form onSubmit={handleSaveEntry} className="space-y-6 bg-gray-50/50 border border-gray-100 p-6 rounded-2xl">
-            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-2">Tambah Entry Baru</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Waktu Mulai</label>
-                <input 
-                  type="datetime-local" required
-                  className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
-                  value={formData.waktu_mulai}
-                  onChange={(e) => setFormData({ ...formData, waktu_mulai: e.target.value })}
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Form */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-8 sticky top-24">
+            <h3 className="text-lg font-black text-gray-800 mb-6 uppercase tracking-wider text-xs">Tambah Aktivitas</h3>
+            <form onSubmit={handleSaveEntry} className="space-y-5">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Waktu Mulai</label>
+                  <input 
+                    type="datetime-local" required
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={formData.waktu_mulai}
+                    onChange={(e) => setFormData({ ...formData, waktu_mulai: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Waktu Selesai</label>
+                  <input 
+                    type="datetime-local" required
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={formData.waktu_selesai}
+                    onChange={(e) => setFormData({ ...formData, waktu_selesai: e.target.value })}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Waktu Selesai</label>
-                <input 
-                  type="datetime-local" required
-                  className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
-                  value={formData.waktu_selesai}
-                  onChange={(e) => setFormData({ ...formData, waktu_selesai: e.target.value })}
-                />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Jenis Kegiatan</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Kategori Kegiatan</label>
                 <select 
                   required
-                  className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
+                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer"
                   value={formData.jenis_kegiatan}
                   onChange={(e) => setFormData({ ...formData, jenis_kegiatan: e.target.value })}
                 >
-                  <option value="">Pilih jenis...</option>
-                  <option value="Teknis">Teknis</option>
-                  <option value="Administrasi">Administrasi</option>
-                  <option value="Koordinasi">Koordinasi</option>
-                  <option value="Lainnya">Lainnya</option>
+                  <option value="">Pilih Kategori...</option>
+                  <option value="Teknis">Implementasi Teknis</option>
+                  <option value="Administrasi">Pekerjaan Administrasi</option>
+                  <option value="Koordinasi">Rapat & Koordinasi</option>
+                  <option value="Riset">Riset & Analisis</option>
                 </select>
               </div>
+
               <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1.5">Media (Opsional)</label>
-                <input 
-                  type="text" placeholder="Misal: Zoom, On-site, Jira"
-                  className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
-                  value={formData.media}
-                  onChange={(e) => setFormData({ ...formData, media: e.target.value })}
-                />
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Deskripsi Singkat</label>
+                <textarea 
+                  rows="4" required placeholder="Apa yang Anda selesaikan hari ini?"
+                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  value={formData.keterangan}
+                  onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
+                ></textarea>
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-bold text-gray-700 block mb-1.5">Deskripsi Aktivitas</label>
-              <textarea 
-                rows="3" required placeholder="Jelaskan secara detail apa yang Anda kerjakan..."
-                className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
-                value={formData.keterangan}
-                onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
-              ></textarea>
-            </div>
+              <div className="relative group">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Dokumentasi (PDF/Image)</label>
+                <div className="border-2 border-dashed border-gray-100 rounded-xl p-4 flex items-center justify-center bg-gray-50 hover:border-blue-400 transition-all cursor-pointer relative overflow-hidden">
+                  <input 
+                    type="file" accept="image/*,.pdf"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    onChange={(e) => setFormData({ ...formData, file_dokumentasi: e.target.files[0] })}
+                  />
+                  <p className="text-[10px] font-bold text-blue-600 truncate px-2">
+                    {formData.file_dokumentasi ? formData.file_dokumentasi.name : 'Pilih File...'}
+                  </p>
+                </div>
+              </div>
 
-            <div>
-              <label className="text-xs font-bold text-gray-700 block mb-1.5">Dokumentasi (Foto/File)</label>
-              <input 
-                type="file"
-                accept="image/*,.pdf"
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all"
-                onChange={(e) => setFormData({ ...formData, file_dokumentasi: e.target.files[0] })}
-              />
-            </div>
+              <button 
+                type="submit"
+                disabled={isLoading || !laporan}
+                className={`w-full py-4 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 ${
+                  (isLoading || !laporan) ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'
+                }`}
+              >
+                💾 Simpan Aktivitas
+              </button>
+            </form>
+          </div>
+        </div>
 
-            <button 
-              type="submit"
-              disabled={isLoading || !laporan}
-              className={`px-6 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 flex items-center gap-2 ${
-                (isLoading || !laporan) ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {isLoading && (
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              )}
-              Simpan Entry Logbook
-            </button>
-          </form>
-
-          {/* Riwayat Logbook */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-50 pb-2">Riwayat Logbook</h3>
-            <div className="space-y-3">
-              {logs.length > 0 ? (
-                logs.map((log) => (
-                  <div key={log.logbook_id} className="p-5 border border-gray-100 rounded-2xl bg-white hover:shadow-sm transition-shadow space-y-3">
-                    <div className="flex justify-between items-start">
+        {/* Right Column: List Timeline */}
+        <div className="lg:col-span-2 space-y-6">
+          <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+             <span className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-sm">🕒</span>
+             Riwayat Aktivitas Terakhir
+          </h3>
+          
+          <div className="relative border-l-2 border-gray-100 ml-4 pl-8 space-y-8 py-4">
+            {logs.length > 0 ? (
+              logs.map((log) => (
+                <div key={log.logbook_id} className="relative">
+                  <div className="absolute -left-[2.6rem] top-0 w-8 h-8 bg-white border-2 border-blue-500 rounded-full flex items-center justify-center text-[10px] z-10 shadow-sm">
+                    ✅
+                  </div>
+                  <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
                       <div>
-                        <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase mb-1">
+                        <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest mb-2 border border-blue-100">
                           {log.jenis_kegiatan}
                         </span>
-                        <h4 className="font-bold text-gray-800 text-sm">
+                        <h4 className="font-black text-gray-800 text-lg leading-none">
                           {new Date(log.waktu_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </h4>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-medium">
-                        {new Date(log.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - {new Date(log.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Durasi Kerja</p>
+                        <p className="text-xs font-bold text-gray-600 px-3 py-1 bg-gray-50 rounded-lg">
+                          {new Date(log.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - {new Date(log.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-gray-600 text-xs leading-relaxed">{log.keterangan}</p>
-                    {log.dokumentasi && (
-                      <a 
-                        href={log.dokumentasi} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-bold hover:underline"
-                      >
-                        📎 Lihat Dokumentasi
-                      </a>
-                    )}
+                    <p className="text-gray-500 text-sm font-medium leading-relaxed mb-6">{log.keterangan}</p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                      <div className="flex gap-4">
+                        {log.media && (
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase">
+                            <span>📱 Media:</span>
+                            <span className="text-gray-600">{log.media}</span>
+                          </div>
+                        )}
+                        {log.dokumentasi && (
+                          <a 
+                            href={log.dokumentasi} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 uppercase hover:underline"
+                          >
+                            📄 Dokumentasi
+                          </a>
+                        )}
+                      </div>
+                      <button className="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <p className="text-gray-400 text-xs">Belum ada riwayat aktivitas.</p>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="bg-gray-50 rounded-[2rem] p-12 border border-dashed border-gray-200 text-center">
+                <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Belum ada aktivitas tercatat.</p>
+              </div>
+            )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
