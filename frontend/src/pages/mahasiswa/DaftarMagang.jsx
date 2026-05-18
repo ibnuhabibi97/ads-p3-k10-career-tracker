@@ -38,7 +38,7 @@ export default function DaftarMagang() {
   }, [location.state]);
 
   const handleSubmit = async (e) => {
-...
+    e.preventDefault();
     
     if (!formData.lowongan_id || !formData.file_cv || !formData.file_rekomendasi) {
       toast.error('Semua berkas dan pilihan lowongan wajib diisi.');
