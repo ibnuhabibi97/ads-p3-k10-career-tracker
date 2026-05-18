@@ -2,40 +2,92 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Sidebar({ links = [] }) {
+const MENU_ITEMS = {
+  MAHASISWA: [
+    { path: '/mahasiswa/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/mahasiswa/lowongan', label: 'Lowongan Magang', icon: '💼' },
+    { path: '/mahasiswa/daftar', label: 'Daftar Magang', icon: '📝' },
+    { path: '/mahasiswa/logbook', label: 'Logbook Harian', icon: '📓' },
+    { path: '/mahasiswa/laporan-akhir', label: 'Laporan Akhir', icon: '📁' },
+    { path: '/mahasiswa/dokumen', label: 'Dokumen Saya', icon: '📑' },
+    { path: '/mahasiswa/hubungi-dosen', label: 'Hubungi Dosen', icon: '💬' },
+  ],
+  DOSEN: [
+    { path: '/dosen/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/dosen/nilai', label: 'Input Nilai', icon: '⭐' },
+    { path: '/dosen/rekomendasi', label: 'Surat Rekomendasi', icon: '✉️' },
+    { path: '/dosen/progres', label: 'Pantau Progres', icon: '📈' },
+  ],
+  STAFF: [
+    { path: '/staff/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/staff/kelola-lowongan', label: 'Kelola Lowongan', icon: '⚙️' },
+    { path: '/staff/tambah-lowongan', label: 'Tambah Lowongan', icon: '➕' },
+    { path: '/staff/verifikasi', label: 'Verifikasi Pelamar', icon: '✅' },
+  ],
+};
+
+const THEME_COLORS = {
+  MAHASISWA: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
+  DOSEN: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100',
+  STAFF: 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100',
+};
+
+export default function Sidebar() {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  
+  const role = user?.role?.toUpperCase() || 'MAHASISWA';
+  const links = MENU_ITEMS[role] || [];
+  const theme = THEME_COLORS[role] || THEME_COLORS.STAFF;
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen p-4 flex flex-col justify-between">
+    <aside className="w-72 bg-white border-r border-gray-200 min-h-screen p-6 flex flex-col justify-between sticky top-0 overflow-y-auto">
       <div>
-        <div className="mb-8 px-2">
-          <h2 className="text-lg font-bold text-gray-800">Menu Navigasi</h2>
+        <div className="mb-10 px-2 flex items-center gap-3">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-200">
+            C
+          </div>
+          <h2 className="text-xl font-black text-gray-800 tracking-tight">Career Tracker</h2>
         </div>
-        <nav className="space-y-1">
-          {links.map((link, idx) => (
-            <Link
-              key={idx}
-              to={link.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                location.pathname === link.path
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              <span>{link.icon}</span>
-              {link.label}
-            </Link>
-          ))}
+        
+        <nav className="space-y-2">
+          {links.map((link, idx) => {
+            const isActive = location.pathname === link.path;
+            return (
+              <Link
+                key={idx}
+                to={link.path}
+                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 ${
+                  isActive
+                    ? theme
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                }`}
+              >
+                <span className="text-xl opacity-80">{link.icon}</span>
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
-      <div className="border-t border-gray-100 pt-4">
-        <button 
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+
+      <div className="space-y-4">
+        <Link 
+          to={`/${role.toLowerCase()}/ubah-password`}
+          className="flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
         >
-          🚪 Keluar
-        </button>
+          <span className="text-xl opacity-80">🔐</span>
+          Ubah Password
+        </Link>
+        <div className="pt-4 border-t border-gray-100">
+          <button 
+            onClick={logout}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all duration-200"
+          >
+            <span className="text-xl opacity-80">🚪</span>
+            Keluar Sistem
+          </button>
+        </div>
       </div>
     </aside>
   );

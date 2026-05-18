@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import ProtectedRoute from '../components/ProtectedRoute';
+import AppLayout from '../components/AppLayout';
+import { DashboardSkeleton } from '../components/Skeleton';
 
 // Lazy loading components
 const Home = lazy(() => import('../pages/home/Home'));
@@ -69,55 +71,53 @@ const router = createBrowserRouter([
       </Suspense>
     ),
   },
-  // Main Routes untuk Mahasiswa
+  // Main Protected Layout Routes
   {
     path: '/mahasiswa',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <ProtectedRoute allowedRoles={['MAHASISWA']} />
-      </Suspense>
+      <ProtectedRoute allowedRoles={['MAHASISWA']}>
+        <AppLayout />
+      </ProtectedRoute>
     ),
     children: [
-      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardMahasiswa /></Suspense> },
-      { path: 'daftar', element: <Suspense fallback={<LoadingFallback />}><DaftarMagang /></Suspense> },
-      { path: 'dokumen', element: <Suspense fallback={<LoadingFallback />}><Dokumen /></Suspense> },
-      { path: 'hubungi-dosen', element: <Suspense fallback={<LoadingFallback />}><HubungiDosen /></Suspense> },
-      { path: 'laporan-akhir', element: <Suspense fallback={<LoadingFallback />}><LaporanAkhir /></Suspense> },
-      { path: 'lowongan', element: <Suspense fallback={<LoadingFallback />}><LihatLowongan /></Suspense> },
-      { path: 'logbook', element: <Suspense fallback={<LoadingFallback />}><Logbook /></Suspense> },
-      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
+      { path: 'dashboard', element: <Suspense fallback={<DashboardSkeleton />}><DashboardMahasiswa /></Suspense> },
+      { path: 'daftar', element: <Suspense fallback={<DashboardSkeleton />}><DaftarMagang /></Suspense> },
+      { path: 'dokumen', element: <Suspense fallback={<DashboardSkeleton />}><Dokumen /></Suspense> },
+      { path: 'hubungi-dosen', element: <Suspense fallback={<DashboardSkeleton />}><HubungiDosen /></Suspense> },
+      { path: 'laporan-akhir', element: <Suspense fallback={<DashboardSkeleton />}><LaporanAkhir /></Suspense> },
+      { path: 'lowongan', element: <Suspense fallback={<DashboardSkeleton />}><LihatLowongan /></Suspense> },
+      { path: 'logbook', element: <Suspense fallback={<DashboardSkeleton />}><Logbook /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
     ],
   },
-  // Main Routes untuk Dosen
   {
     path: '/dosen',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <ProtectedRoute allowedRoles={['DOSEN']} />
-      </Suspense>
+      <ProtectedRoute allowedRoles={['DOSEN']}>
+        <AppLayout />
+      </ProtectedRoute>
     ),
     children: [
-      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardDosen /></Suspense> },
-      { path: 'nilai', element: <Suspense fallback={<LoadingFallback />}><BerikanNilai /></Suspense> },
-      { path: 'rekomendasi', element: <Suspense fallback={<LoadingFallback />}><SuratRekomendasi /></Suspense> },
-      { path: 'progres', element: <Suspense fallback={<LoadingFallback />}><TinjauProgres /></Suspense> },
-      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
+      { path: 'dashboard', element: <Suspense fallback={<DashboardSkeleton />}><DashboardDosen /></Suspense> },
+      { path: 'nilai', element: <Suspense fallback={<DashboardSkeleton />}><BerikanNilai /></Suspense> },
+      { path: 'rekomendasi', element: <Suspense fallback={<DashboardSkeleton />}><SuratRekomendasi /></Suspense> },
+      { path: 'progres', element: <Suspense fallback={<DashboardSkeleton />}><TinjauProgres /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
     ],
   },
-  // Main Routes untuk Staff
   {
     path: '/staff',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <ProtectedRoute allowedRoles={['STAFF']} />
-      </Suspense>
+      <ProtectedRoute allowedRoles={['STAFF']}>
+        <AppLayout />
+      </ProtectedRoute>
     ),
     children: [
-      { path: 'dashboard', element: <Suspense fallback={<LoadingFallback />}><DashboardStaff /></Suspense> },
-      { path: 'kelola-lowongan', element: <Suspense fallback={<LoadingFallback />}><KelolaLowongan /></Suspense> },
-      { path: 'tambah-lowongan', element: <Suspense fallback={<LoadingFallback />}><TambahLowongan /></Suspense> },
-      { path: 'verifikasi', element: <Suspense fallback={<LoadingFallback />}><VerifikasiPendaftaran /></Suspense> },
-      { path: 'ubah-password', element: <Suspense fallback={<LoadingFallback />}><ChangePassword /></Suspense> },
+      { path: 'dashboard', element: <Suspense fallback={<DashboardSkeleton />}><DashboardStaff /></Suspense> },
+      { path: 'kelola-lowongan', element: <Suspense fallback={<DashboardSkeleton />}><KelolaLowongan /></Suspense> },
+      { path: 'tambah-lowongan', element: <Suspense fallback={<DashboardSkeleton />}><TambahLowongan /></Suspense> },
+      { path: 'verifikasi', element: <Suspense fallback={<DashboardSkeleton />}><VerifikasiPendaftaran /></Suspense> },
+      { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
     ],
   },
   // Fallback jika route tidak ditemukan
