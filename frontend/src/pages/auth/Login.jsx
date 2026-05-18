@@ -117,6 +117,24 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        <div className="mt-6 space-y-3">
+          <p className="text-center text-xs text-gray-500">Belum punya akun?</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              to="/register/mahasiswa"
+              className="py-2 px-3 border border-indigo-100 bg-indigo-50 text-indigo-600 rounded-xl text-center text-xs font-semibold hover:bg-indigo-100 transition-colors"
+            >
+              Daftar Mahasiswa
+            </Link>
+            <Link
+              to="/register/dosen-staff"
+              className="py-2 px-3 border border-gray-100 bg-gray-50 text-gray-600 rounded-xl text-center text-xs font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Daftar Dosen/Staff
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

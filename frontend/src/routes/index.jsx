@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Home from '../pages/home/Home';
 import Login from '../pages/auth/Login';
+import RegisterMahasiswa from '../pages/auth/RegisterMahasiswa';
+import RegisterDosenStaff from '../pages/auth/RegisterDosenStaff';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 // Import Halaman Mahasiswa
@@ -32,6 +34,14 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/register/mahasiswa',
+    element: <RegisterMahasiswa />,
+  },
+  {
+    path: '/register/dosen-staff',
+    element: <RegisterDosenStaff />,
   },
   // Main Routes untuk Mahasiswa
   {
