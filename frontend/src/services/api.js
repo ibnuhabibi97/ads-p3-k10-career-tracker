@@ -44,7 +44,18 @@ api.interceptors.response.use(
       } else if (status === 500) {
         toast.error('Terjadi kesalahan pada server. Coba beberapa saat lagi.');
       } else if (detail) {
-        if (status !== 401) toast.error(detail);
+        if (status !== 401) {
+          let message = 'Terjadi kesalahan.';
+          if (typeof detail === 'string') {
+            message = detail;
+          } else if (Array.isArray(detail)) {
+            // Biasanya error validasi FastAPI: [{msg: "...", ...}]
+            message = detail[0]?.msg || JSON.stringify(detail);
+          } else if (typeof detail === 'object') {
+            message = detail.message || JSON.stringify(detail);
+          }
+          toast.error(message);
+        }
       }
     } else {
       toast.error('Koneksi internet terputus atau server tidak merespon.');

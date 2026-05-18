@@ -35,26 +35,27 @@ export default function HubungiDosen() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.dosen_id || !formData.file_draft) {
-      alert("Silakan pilih dosen dan unggah draf surat!");
+      toast.error("Silakan pilih dosen dan unggah draf surat!");
       return;
     }
 
     setIsLoading(true);
     const data = new FormData();
     data.append('dosen_id', formData.dosen_id);
-    data.append('file_draft', formData.file_draft);
+    data.append('file', formData.file_draft); // Harus 'file' sesuai backend
 
     try {
       const response = await api.post('/surat-rekomendasi/', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (response.status === 201) {
-        alert("Permintaan surat rekomendasi berhasil dikirim!");
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Permintaan surat rekomendasi berhasil dikirim!");
         setFormData({ dosen_id: '', file_draft: null });
         fetchData();
       }
     } catch (err) {
-      alert(err.response?.data?.detail || "Gagal mengirim permintaan.");
+      // Error detail sudah dihandle oleh global interceptor di api.js
+      console.error("Submission error:", err);
     } finally {
       setIsLoading(false);
     }

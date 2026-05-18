@@ -9,7 +9,6 @@ const MENU_ITEMS = {
     { path: '/mahasiswa/daftar', label: 'Daftar Magang', icon: '📝' },
     { path: '/mahasiswa/riwayat', label: 'Riwayat Lamaran', icon: '📂' },
     { path: '/mahasiswa/laporan', label: 'Laporan Magang', icon: '📁' },
-    { path: '/mahasiswa/dokumen', label: 'Dokumen Saya', icon: '📑' },
     { path: '/mahasiswa/hubungi-dosen', label: 'Hubungi Dosen', icon: '💬' },
   ],
   DOSEN: [

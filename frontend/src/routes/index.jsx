@@ -17,8 +17,7 @@ const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
 const DashboardMahasiswa = lazy(() => import('../pages/mahasiswa/DashboardMahasiswa'));
 const DaftarMagang = lazy(() => import('../pages/mahasiswa/DaftarMagang'));
 const RiwayatPendaftaran = lazy(() => import('../pages/mahasiswa/RiwayatPendaftaran'));
-const Dokumen = lazy(() => import('../pages/mahasiswa/Dokumen'));
-const HubungiDosen = lazy(() => import('../pages/mahasiswa/HubungiDoesn'));
+const HubungiDosen = lazy(() => import('../pages/mahasiswa/HubungiDosen'));
 const DaftarLaporan = lazy(() => import('../pages/mahasiswa/DaftarLaporan'));
 const LaporanAkhir = lazy(() => import('../pages/mahasiswa/LaporanAkhir'));
 const DetailLogbook = lazy(() => import('../pages/mahasiswa/DetailLogbook'));
@@ -103,7 +102,6 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <Suspense fallback={<DashboardSkeleton />}><DashboardMahasiswa /></Suspense> },
       { path: 'daftar', element: <Suspense fallback={<DashboardSkeleton />}><DaftarMagang /></Suspense> },
       { path: 'riwayat', element: <Suspense fallback={<DashboardSkeleton />}><RiwayatPendaftaran /></Suspense> },
-      { path: 'dokumen', element: <Suspense fallback={<DashboardSkeleton />}><Dokumen /></Suspense> },
       { path: 'hubungi-dosen', element: <Suspense fallback={<DashboardSkeleton />}><HubungiDosen /></Suspense> },
       { path: 'laporan', element: <Suspense fallback={<DashboardSkeleton />}><DaftarLaporan /></Suspense> },
       { path: 'laporan/:laporanId', element: <Suspense fallback={<DashboardSkeleton />}><LaporanAkhir /></Suspense> },
