@@ -1,60 +1,144 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 export default function TinjauProgres() {
-  const logbookEntries = [
-    { tanggal: '18 April 2024', isi: 'Mempelajari React Hooks dan membuat komponen form untuk fitur registrasi.', status: 'Sudah diperiksa' },
-    { tanggal: '16 April 2024', isi: 'Diskusi dengan tim UI untuk sinkronisasi sprint berikutnya.', status: 'Belum diperiksa' },
-    { tanggal: '13 April 2024', isi: 'Implementasi slicing UI dan login menggunakan autentikasi JWT.', status: 'Sudah diperiksa' },
-  ];
+  const { user } = useAuth();
+  const [mahasiswaList, setMahasiswaList] = useState([]);
+  const [selectedLaporan, setSelectedLaporan] = useState(null);
+  const [logbooks, setLogbooks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMahasiswa = async () => {
+      try {
+        const response = await api.get(`/laporan/dosen/${user.user_id}`);
+        setMahasiswaList(response.data);
+        if (response.data.length > 0) {
+          handleSelectMahasiswa(response.data[0]);
+        }
+      } catch (err) {
+        console.error('Gagal memuat daftar mahasiswa:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMahasiswa();
+  }, [user.user_id]);
+
+  const handleSelectMahasiswa = async (laporan) => {
+    setSelectedLaporan(laporan);
+    try {
+      const response = await api.get(`/logbook/laporan/${laporan.laporan_id}`);
+      setLogbooks(response.data);
+    } catch (err) {
+      console.error('Gagal memuat logbook:', err);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header title="Tinjau Progres" userName="Dr. Ahmad Suryadi, M.Kom" userDetail="NIDN. 0012345678" bgColor="bg-green-600" />
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <Header 
+        title="Tinjau Progres" 
+        userName={user?.nama} 
+        userDetail={`NIP. ${user?.nip}`} 
+        bgColor="bg-green-600" 
+      />
 
       <main className="max-w-5xl mx-auto px-6 mt-8 space-y-6">
         {/* Pilih Mahasiswa Dropdown */}
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <label className="text-sm font-bold text-gray-700 block mb-2">Pilih Mahasiswa</label>
-          <select className="w-full md:w-1/3 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none">
-            <option>Muhammad Rizki (123456789)</option>
-            <option>Siti Aminah (123456790)</option>
-          </select>
+          <label className="text-sm font-bold text-gray-700 block mb-2">Pilih Mahasiswa Bimbingan</label>
+          {isLoading ? (
+            <div className="text-sm text-gray-400">Memuat mahasiswa...</div>
+          ) : (
+            <select 
+              className="w-full md:w-1/2 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500"
+              onChange={(e) => {
+                const laporan = mahasiswaList.find(m => m.laporan_id === parseInt(e.target.value));
+                handleSelectMahasiswa(laporan);
+              }}
+              value={selectedLaporan?.laporan_id || ''}
+            >
+              {mahasiswaList.map((m) => (
+                <option key={m.laporan_id} value={m.laporan_id}>
+                  {m.mahasiswa_nama} ({m.mahasiswa_nim})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
-        {/* Logbook Section */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h2 className="font-bold text-gray-800">Logbook: Muhammad Rizki</h2>
-            <span className="text-xs text-green-600 font-semibold uppercase">Progres: 65%</span>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {logbookEntries.map((entry, idx) => (
-              <div key={idx} className="p-5 flex justify-between items-start gap-6">
-                <div className="flex-1">
-                  <span className="text-xs font-bold text-gray-400 block mb-1">{entry.tanggal}</span>
-                  <p className="text-sm text-gray-700 leading-relaxed">{entry.isi}</p>
-                </div>
-                <button className="text-xs text-blue-600 font-bold hover:underline shrink-0">Beri Komentar</button>
+        {selectedLaporan && (
+          <>
+            {/* Logbook Section */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 className="font-bold text-gray-800 uppercase text-xs tracking-wider">Logbook: {selectedLaporan.mahasiswa_nama}</h2>
+                <span className="text-xs text-indigo-600 font-bold">{logbooks.length} Kegiatan Terdaftar</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Laporan Akhir Section */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-          <h2 className="font-bold text-gray-800 mb-4">Laporan Akhir</h2>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl text-red-500">📄</span>
-              <div>
-                <p className="text-sm font-semibold text-gray-800">Laporan_Magang_Muhammad_Rizki.pdf</p>
-                <p className="text-xs text-gray-400">Diunggah pada 20 April 2024</p>
+              <div className="divide-y divide-gray-100">
+                {logbooks.length > 0 ? (
+                  logbooks.map((entry) => (
+                    <div key={entry.logbook_id} className="p-5 flex justify-between items-start gap-6 hover:bg-gray-50/30 transition-colors">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-gray-400 uppercase">
+                            {new Date(entry.waktu_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                          <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded text-[9px] font-bold uppercase">{entry.jenis_kegiatan}</span>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">{entry.keterangan}</p>
+                        {entry.media && <p className="text-[10px] text-gray-400 italic">Media: {entry.media}</p>}
+                        {entry.dokumentasi && (
+                          <a 
+                            href={entry.dokumentasi} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block mt-2 text-[10px] text-blue-600 font-bold hover:underline"
+                          >
+                            📎 Lihat Dokumentasi
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-10 text-center text-gray-400 italic text-sm">Belum ada entry logbook.</div>
+                )}
               </div>
             </div>
-            <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50">Unduh</button>
-          </div>
-        </div>
+
+            {/* Laporan Akhir Section */}
+            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+              <h2 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Laporan Akhir</h2>
+              {selectedLaporan.dokumen_laporan ? (
+                <div className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">📄</span>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">Dokumen Laporan Mahasiswa</p>
+                      <p className="text-xs text-gray-400">Status: {selectedLaporan.status}</p>
+                    </div>
+                  </div>
+                  <a 
+                    href={selectedLaporan.dokumen_laporan}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-100"
+                  >
+                    Unduh / Lihat
+                  </a>
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                  <p className="text-gray-400 text-xs italic">Mahasiswa belum mengunggah laporan akhir.</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

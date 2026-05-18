@@ -1,30 +1,54 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 export default function DashboardDosen() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [mahasiswaList, setMahasiswaList] = useState([]);
+  const [stats, setStats] = useState([
+    { label: 'Mahasiswa Bimbingan', count: 0, icon: '👥', color: 'text-green-600' },
+    { label: 'Magang Aktif', count: 0, icon: '📘', color: 'text-blue-600' },
+    { label: 'Selesai', count: 0, icon: '🎓', color: 'text-purple-600' },
+    { label: 'Perlu Dinilai', count: 0, icon: '📝', color: 'text-orange-600' },
+  ]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const stats = [
-    { label: 'Mahasiswa Bimbingan', count: 12, icon: '👥', color: 'text-green-600' },
-    { label: 'Magang Aktif', count: 8, icon: '📘', color: 'text-blue-600' },
-    { label: 'Selesai', count: 4, icon: '🎓', color: 'text-purple-600' },
-    { label: 'Perlu Dinilai', count: 3, icon: '📝', color: 'text-orange-600' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get(`/laporan/dosen/${user.user_id}`);
+        const data = response.data;
+        setMahasiswaList(data);
+
+        // Calculate stats
+        const total = data.length;
+        const active = data.filter(l => l.status === 'PENDING').length;
+        const finished = data.filter(l => l.status === 'GRADED').length;
+        const needGrading = data.filter(l => l.status === 'PENDING' && l.dokumen_laporan).length;
+
+        setStats([
+          { label: 'Mahasiswa Bimbingan', count: total, icon: '👥', color: 'text-green-600' },
+          { label: 'Magang Aktif', count: active, icon: '📘', color: 'text-blue-600' },
+          { label: 'Selesai', count: finished, icon: '🎓', color: 'text-purple-600' },
+          { label: 'Perlu Dinilai', count: needGrading, icon: '📝', color: 'text-orange-600' },
+        ]);
+      } catch (err) {
+        console.error('Gagal memuat data bimbingan:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [user.user_id]);
 
   const mainMenus = [
     { title: 'Tinjau Progres', desc: 'Lihat logbook mahasiswa', icon: '📊', path: '/dosen/progres' },
     { title: 'Berikan Nilai', desc: 'Input nilai magang', icon: '🏅', path: '/dosen/nilai' },
     { title: 'Surat Rekomendasi', desc: 'Kelola permintaan', icon: '✍️', path: '/dosen/rekomendasi' },
     { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/dosen/ubah-password' },
-  ];
-
-  const mahasiswaList = [
-    { nama: 'Muhammad Rizki', nim: '123456789', perusahaan: 'PT Tech Indonesia', progres: 60, nilai: 'Belum dinilai' },
-    { nama: 'Siti Aminah', nim: '123456790', perusahaan: 'CV Digital Creative', progres: 85, nilai: 'A' },
-    { nama: 'Budi Santoso', nim: '123456791', perusahaan: 'PT Data Solutions', progres: 40, nilai: 'Belum dinilai' },
   ];
 
   return (
@@ -75,39 +99,48 @@ export default function DashboardDosen() {
             <h2 className="text-lg font-bold text-gray-800">Daftar Mahasiswa Bimbingan</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
-                  <th className="py-4 px-6">Nama</th>
-                  <th className="py-4 px-6">NIM</th>
-                  <th className="py-4 px-6">Perusahaan</th>
-                  <th className="py-4 px-6">Progres</th>
-                  <th className="py-4 px-6">Nilai</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {mahasiswaList.map((mhs, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50">
-                    <td className="py-4 px-6 font-medium text-gray-900">{mhs.nama}</td>
-                    <td className="py-4 px-6 text-gray-500">{mhs.nim}</td>
-                    <td className="py-4 px-6">{mhs.perusahaan}</td>
-                    <td className="py-4 px-6 w-1/5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                          <div className="bg-green-500 h-full" style={{ width: `${mhs.progres}%` }}></div>
-                        </div>
-                        <span className="text-xs font-semibold text-gray-500">{mhs.progres}%</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${mhs.nilai === 'A' ? 'bg-green-50 text-green-700 border border-green-200' : 'text-gray-400'}`}>
-                        {mhs.nilai}
-                      </span>
-                    </td>
+            {isLoading ? (
+              <div className="p-10 text-center text-gray-500">Memuat data mahasiswa...</div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
+                    <th className="py-4 px-6">Nama</th>
+                    <th className="py-4 px-6">NIM</th>
+                    <th className="py-4 px-6">Status Laporan</th>
+                    <th className="py-4 px-6">Nilai</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                  {mahasiswaList.length > 0 ? (
+                    mahasiswaList.map((laporan, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50">
+                        <td className="py-4 px-6 font-medium text-gray-900">{laporan.mahasiswa_nama}</td>
+                        <td className="py-4 px-6 text-gray-500">{laporan.mahasiswa_nim}</td>
+                        <td className="py-4 px-6">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                            laporan.status === 'GRADED' ? 'bg-green-50 text-green-700 border-green-200' : 
+                            laporan.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' : 
+                            'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {laporan.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${laporan.nilai ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'text-gray-400'}`}>
+                            {laporan.nilai || '-'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="py-8 text-center text-gray-400 italic">Belum ada mahasiswa bimbingan.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </main>
