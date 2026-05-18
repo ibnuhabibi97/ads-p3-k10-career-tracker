@@ -8,7 +8,6 @@ const MENU_ITEMS = {
     { path: '/mahasiswa/lowongan', label: 'Lowongan Magang', icon: '💼' },
     { path: '/mahasiswa/daftar', label: 'Daftar Magang', icon: '📝' },
     { path: '/mahasiswa/riwayat', label: 'Riwayat Lamaran', icon: '📂' },
-    { path: '/mahasiswa/logbook', label: 'Logbook Harian', icon: '📓' },
     { path: '/mahasiswa/laporan-akhir', label: 'Laporan Akhir', icon: '📁' },
     { path: '/mahasiswa/dokumen', label: 'Dokumen Saya', icon: '📑' },
     { path: '/mahasiswa/hubungi-dosen', label: 'Hubungi Dosen', icon: '💬' },

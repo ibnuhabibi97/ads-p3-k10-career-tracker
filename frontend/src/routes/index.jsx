@@ -21,7 +21,6 @@ const Dokumen = lazy(() => import('../pages/mahasiswa/Dokumen'));
 const HubungiDosen = lazy(() => import('../pages/mahasiswa/HubungiDoesn'));
 const LaporanAkhir = lazy(() => import('../pages/mahasiswa/LaporanAkhir'));
 const LihatLowongan = lazy(() => import('../pages/mahasiswa/LihatLowongan'));
-const Logbook = lazy(() => import('../pages/mahasiswa/Logbook'));
 
 // Halaman Dosen
 const DashboardDosen = lazy(() => import('../pages/dosen/DashboardDosen'));
@@ -106,7 +105,6 @@ const router = createBrowserRouter([
       { path: 'hubungi-dosen', element: <Suspense fallback={<DashboardSkeleton />}><HubungiDosen /></Suspense> },
       { path: 'laporan-akhir', element: <Suspense fallback={<DashboardSkeleton />}><LaporanAkhir /></Suspense> },
       { path: 'lowongan', element: <Suspense fallback={<DashboardSkeleton />}><LihatLowongan /></Suspense> },
-      { path: 'logbook', element: <Suspense fallback={<DashboardSkeleton />}><Logbook /></Suspense> },
       { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
     ],
   },
