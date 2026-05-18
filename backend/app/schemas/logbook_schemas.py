@@ -4,13 +4,13 @@ from datetime import date, datetime, timedelta
 
 #Base Schema
 class LogbookBase(BaseModel):
-    waktu_mulai: datetime
-    waktu_selesai: datetime
+    waktu_mulai: Optional[datetime] = None
+    waktu_selesai: Optional[datetime] = None
     dosen_id: int
-    keterangan: str        # Mengikuti penamaan kolom di model (keterangan)
+    keterangan: Optional[str] = None
     media: Optional[str] = None
     dokumentasi: Optional[str] = None
-    jenis_kegiatan: str
+    jenis_kegiatan: Optional[str] = None
 
 
 #Create Schema (Untuk POST Request)
@@ -35,8 +35,8 @@ class LogbookResponse(LogbookBase):
     logbook_id: int
     laporan_id: int
     mahasiswa_id: int
-    
+
     tanggal_log: date
-    durasi_kegiatan: timedelta 
+    durasi_kegiatan: Optional[timedelta] = None
 
     model_config = ConfigDict(from_attributes=True)
