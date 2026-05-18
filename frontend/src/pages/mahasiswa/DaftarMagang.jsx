@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function DaftarMagang() {
   const navigate = useNavigate();
@@ -14,15 +14,18 @@ export default function DaftarMagang() {
     file_rekomendasi: null
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     const fetchLowongan = async () => {
+      setIsFetching(true);
       try {
         const response = await api.get('/lowongan/aktif');
         setLowonganList(response.data);
       } catch (err) {
-        console.error('Gagal memuat lowongan:', err);
+        toast.error('Gagal memuat daftar lowongan.');
+      } finally {
+        setIsFetching(false);
       }
     };
     fetchLowongan();
@@ -30,10 +33,9 @@ export default function DaftarMagang() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     
     if (!formData.lowongan_id || !formData.file_cv || !formData.file_rekomendasi) {
-      setError('Semua field dan file wajib diisi.');
+      toast.error('Semua berkas dan pilihan lowongan wajib diisi.');
       return;
     }
 
@@ -52,131 +54,132 @@ export default function DaftarMagang() {
       });
       
       if (response.status === 201) {
-        alert("Pendaftaran magang Anda berhasil dikirim!");
+        toast.success("Pendaftaran magang Anda berhasil dikirim!");
         navigate('/mahasiswa/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Gagal mengirim pendaftaran.');
+      const detail = err.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Gagal mengirim pendaftaran.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Pendaftaran Magang" 
-        userName={user?.nama} 
-        userDetail={`NIM. ${user?.nim}`} 
-        bgColor="bg-blue-600" 
-      />
+    <div className="max-w-3xl mx-auto pb-12">
+      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-blue-900/5 p-10 space-y-8">
+        <div className="flex justify-between items-center border-b border-gray-50 pb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-blue-200">
+               🚀
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Form Pendaftaran Magang</h2>
+              <p className="text-sm text-gray-400 font-medium">Lengkapi berkas pendaftaran Anda dengan benar.</p>
+            </div>
+          </div>
+        </div>
 
-      <main className="max-w-xl mx-auto px-6 mt-8">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
-          <div className="flex justify-between items-center border-b border-gray-50 pb-4">
-            <h2 className="text-xl font-bold text-gray-900">Form Pendaftaran</h2>
-            <button 
-              onClick={() => navigate(-1)} 
-              className="px-4 py-1.5 bg-gray-50 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Pilihan Lowongan */}
+          <div>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2.5">Target Perusahaan & Posisi</label>
+            <select 
+              required
+              disabled={isFetching}
+              className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all appearance-none cursor-pointer"
+              value={formData.lowongan_id}
+              onChange={(e) => setFormData({ ...formData, lowongan_id: e.target.value })}
             >
-              Batal
-            </button>
+              <option value="">{isFetching ? 'Memuat Lowongan...' : 'Pilih lowongan magang yang tersedia...'}</option>
+              {lowonganList.map((job) => (
+                <option key={job.lowongan_id} value={job.lowongan_id}>
+                  {job.judul_posisi} — {job.perusahaan}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Pilihan Lowongan */}
-            <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1.5">Pilih Lowongan Perusahaan</label>
-              <select 
-                required
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
-                value={formData.lowongan_id}
-                onChange={(e) => setFormData({ ...formData, lowongan_id: e.target.value })}
-              >
-                <option value="">Pilih lowongan...</option>
-                {lowonganList.map((job) => (
-                  <option key={job.lowongan_id} value={job.lowongan_id}>
-                    {job.judul_posisi} - {job.perusahaan}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Input CV */}
-            <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1.5">File CV (PDF)</label>
-              <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors bg-gray-50/50">
-                <input 
-                  type="file" 
-                  required 
-                  accept=".pdf"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={(e) => setFormData({ ...formData, file_cv: e.target.files[0] })}
-                />
-                <div className="text-center">
-                  <span className="text-blue-600 font-medium text-sm">
-                    {formData.file_cv ? formData.file_cv.name : 'Pilih file CV...'}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Curriculum Vitae (PDF)</label>
+              <div className="relative group">
+                <div className={`border-2 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center transition-all ${
+                  formData.file_cv ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-gray-50 group-hover:border-blue-400 group-hover:bg-blue-50/30'
+                }`}>
+                  <input 
+                    type="file" 
+                    required 
+                    accept=".pdf"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={(e) => setFormData({ ...formData, file_cv: e.target.files[0] })}
+                  />
+                  <span className="text-3xl mb-3">{formData.file_cv ? '✅' : '📄'}</span>
+                  <span className={`text-xs font-black uppercase tracking-widest text-center px-4 ${formData.file_cv ? 'text-green-600' : 'text-blue-600'}`}>
+                    {formData.file_cv ? formData.file_cv.name : 'Klik atau seret CV Anda'}
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">Format PDF, Maks 2MB</p>
+                  <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-tight">Format PDF • Maks 2MB</p>
                 </div>
               </div>
             </div>
 
             {/* Input Surat Rekomendasi */}
-            <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1.5">File Surat Rekomendasi (PDF)</label>
-              <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors bg-gray-50/50">
-                <input 
-                  type="file" 
-                  required 
-                  accept=".pdf"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={(e) => setFormData({ ...formData, file_rekomendasi: e.target.files[0] })}
-                />
-                <div className="text-center">
-                  <span className="text-blue-600 font-medium text-sm">
-                    {formData.file_rekomendasi ? formData.file_rekomendasi.name : 'Pilih file Surat Rekomendasi...'}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Surat Rekomendasi (PDF)</label>
+              <div className="relative group">
+                <div className={`border-2 border-dashed rounded-[2rem] p-8 flex flex-col items-center justify-center transition-all ${
+                  formData.file_rekomendasi ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-gray-50 group-hover:border-blue-400 group-hover:bg-blue-50/30'
+                }`}>
+                  <input 
+                    type="file" 
+                    required 
+                    accept=".pdf"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={(e) => setFormData({ ...formData, file_rekomendasi: e.target.files[0] })}
+                  />
+                  <span className="text-3xl mb-3">{formData.file_rekomendasi ? '✅' : '✉️'}</span>
+                  <span className={`text-xs font-black uppercase tracking-widest text-center px-4 ${formData.file_rekomendasi ? 'text-green-600' : 'text-blue-600'}`}>
+                    {formData.file_rekomendasi ? formData.file_rekomendasi.name : 'Klik atau seret Surat'}
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">Format PDF, Maks 2MB</p>
+                  <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-tight">Format PDF • Maks 2MB</p>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-              <p className="text-xs text-blue-700 leading-relaxed">
-                <span className="font-bold">Info:</span> Pastikan dokumen yang diunggah sudah sesuai dengan persyaratan perusahaan. Status seleksi dapat Anda pantau di dashboard setelah lamaran dikirim.
-              </p>
-            </div>
+          {/* Warning Banner */}
+          <div className="bg-amber-50 border border-amber-100 p-5 rounded-2xl flex gap-4">
+             <span className="text-2xl">⚠️</span>
+             <div className="space-y-1">
+               <p className="text-xs font-black text-amber-900 uppercase tracking-wider">Perhatian Penting</p>
+               <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                 Anda hanya diperbolehkan mendaftar satu kali per posisi. Pastikan seluruh berkas sudah benar karena data yang sudah dikirim tidak dapat diubah kembali.
+               </p>
+             </div>
+          </div>
 
-            {/* Tombol Kirim */}
-            <div className="pt-2">
-              <button 
-                type="submit" 
-                disabled={isLoading}
-                className={`w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 flex items-center justify-center ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isLoading ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  'Kirim Lamaran Sekarang'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
+          {/* Tombol Kirim */}
+          <div className="pt-4">
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className={`w-full py-5 bg-blue-600 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 ${
+                isLoading ? 'opacity-70 cursor-not-allowed' : 'active:scale-[0.98]'
+              }`}
+            >
+              {isLoading ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <>🚀 Submit Lamaran Magang</>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
