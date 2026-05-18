@@ -8,20 +8,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const initializeAuth = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        if (storedUser && token && storedUser !== "undefined") {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (err) {
+        console.error("Gagal inisialisasi user dari storage:", err);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     try {
-      // Backend FastAPI biasanya menggunakan OAuth2 password flow (form-data)
+      // Backend FastAPI menggunakan OAuth2 password flow (form-data)
+      // Field 'username' pada form-data dapat diisi dengan username asli atau email (setelah update backend)
       const formData = new FormData();
-      formData.append('username', email); // FastAPI OAuth2 uses 'username'
+      formData.append('username', identifier); 
       formData.append('password', password);
 
       const response = await api.post('/auth/login', formData, {
@@ -38,10 +50,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, role: userData.role };
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error detailed:', error.response?.data || error.message);
       return { 
         success: false, 
-        message: error.response?.data?.detail || 'Gagal login. Periksa kembali email dan password Anda.' 
+        message: error.response?.data?.detail || 'Gagal login. Periksa kembali username/email dan password Anda.' 
       };
     }
   };

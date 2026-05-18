@@ -26,7 +26,7 @@ export default function NotificationDropdown() {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.ref.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
@@ -83,11 +83,13 @@ export default function NotificationDropdown() {
                   <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${!n.is_read ? 'bg-indigo-500' : 'bg-transparent'}`}></div>
                   <div className="space-y-1">
                     <p className={`text-xs leading-relaxed ${!n.is_read ? 'text-gray-900 font-semibold' : 'text-gray-600'}`}>
-                      {n.pesan}
+                      {n.isi_notifikasi}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      {new Date(n.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} • {new Date(n.created_at).toLocaleDateString('id-ID')}
-                    </p>
+                    {n.created_at && (
+                      <p className="text-[10px] text-gray-400 font-medium">
+                        {new Date(n.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} • {new Date(n.created_at).toLocaleDateString('id-ID')}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))

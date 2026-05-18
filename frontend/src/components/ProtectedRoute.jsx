@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -16,17 +16,20 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(user.role.toUpperCase())) {
     // Redirect to their own dashboard if role doesn't match
+    const userRole = user.role.toUpperCase();
     const dashboardMap = {
       MAHASISWA: '/mahasiswa/dashboard',
       DOSEN: '/dosen/dashboard',
       STAFF: '/staff/dashboard',
     };
-    return <Navigate to={dashboardMap[user.role] || '/'} replace />;
+    return <Navigate to={dashboardMap[userRole] || '/'} replace />;
   }
 
-  return children;
+  // Jika ada children (rute biasa), render children. 
+  // Jika tidak (rute parent), render Outlet untuk children bersarang.
+  return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;
