@@ -3,6 +3,7 @@ import Home from '../pages/home/Home';
 import Login from '../pages/auth/Login';
 import RegisterMahasiswa from '../pages/auth/RegisterMahasiswa';
 import RegisterDosenStaff from '../pages/auth/RegisterDosenStaff';
+import ChangePassword from '../pages/auth/ChangePassword';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 // Import Halaman Mahasiswa
@@ -55,6 +56,7 @@ const router = createBrowserRouter([
       { path: 'laporan-akhir', element: <LaporanAkhir /> },
       { path: 'lowongan', element: <LihatLowongan /> },
       { path: 'logbook', element: <Logbook /> },
+      { path: 'ubah-password', element: <ChangePassword /> },
     ],
   },
   // Main Routes untuk Dosen
@@ -66,6 +68,7 @@ const router = createBrowserRouter([
       { path: 'nilai', element: <BerikanNilai /> },
       { path: 'rekomendasi', element: <SuratRekomendasi /> },
       { path: 'progres', element: <TinjauProgres /> },
+      { path: 'ubah-password', element: <ChangePassword /> },
     ],
   },
   // Main Routes untuk Staff
@@ -77,6 +80,7 @@ const router = createBrowserRouter([
       { path: 'kelola-lowongan', element: <KelolaLowongan /> },
       { path: 'tambah-lowongan', element: <TambahLowongan /> },
       { path: 'verifikasi', element: <VerifikasiPendaftaran /> },
+      { path: 'ubah-password', element: <ChangePassword /> },
     ],
   },
   // Fallback jika route tidak ditemukan

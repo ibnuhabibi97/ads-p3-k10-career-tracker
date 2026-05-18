@@ -1,9 +1,11 @@
 import React from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardMahasiswa() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const menus = [
     { title: 'Lihat Lowongan', desc: 'Cari magang', icon: '🔍', path: '/mahasiswa/lowongan' },
@@ -12,17 +14,18 @@ export default function DashboardMahasiswa() {
     { title: 'Hubungi Dosen', desc: 'Minta rekomendasi', icon: '💬', path: '/mahasiswa/hubungi-dosen' },
     { title: 'Logbook', desc: 'Catat aktivitas', icon: '📖', path: '/mahasiswa/logbook' },
     { title: 'Laporan Akhir', desc: 'Upload laporan', icon: '📤', path: '/mahasiswa/laporan-akhir' },
+    { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/mahasiswa/ubah-password' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header 
         title="Dashboard Mahasiswa" 
-        userName="Muhammad Rizki" 
-        userDetail="NIM. 123456789" 
+        userName={user?.nama} 
+        userDetail={`NIM. ${user?.nim}`} 
         bgColor="bg-blue-600" 
       />
-
+...
       <main className="max-w-7xl mx-auto px-6 mt-8 space-y-8">
         {/* Grid Menu Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

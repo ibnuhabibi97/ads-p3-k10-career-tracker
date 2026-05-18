@@ -1,9 +1,11 @@
 import React from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardStaff() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const stats = [
     { label: 'Total Lowongan', count: 15, icon: '💼' },
@@ -16,6 +18,7 @@ export default function DashboardStaff() {
     { title: 'Kelola Lowongan', desc: 'CRUD data lowongan', icon: '⚙️', path: '/staff/kelola-lowongan' },
     { title: 'Tambah Lowongan', desc: 'Buat lowongan baru', icon: '➕', path: '/staff/tambah-lowongan' },
     { title: 'Verifikasi Pendaftaran', desc: 'Review lamaran', icon: '🔍', path: '/staff/verifikasi' },
+    { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/staff/ubah-password' },
   ];
 
   const lowonganList = [
@@ -28,8 +31,8 @@ export default function DashboardStaff() {
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header 
         title="Dashboard Staff Akademik" 
-        userName="Henny Kusumawati, S.Kom" 
-        userDetail="Staff Akademik" 
+        userName={user?.nama} 
+        userDetail={user?.role?.toUpperCase()} 
         bgColor="bg-purple-600" 
       />
 

@@ -1,9 +1,11 @@
 import React from 'react';
 import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardDosen() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const stats = [
     { label: 'Mahasiswa Bimbingan', count: 12, icon: '👥', color: 'text-green-600' },
@@ -16,6 +18,7 @@ export default function DashboardDosen() {
     { title: 'Tinjau Progres', desc: 'Lihat logbook mahasiswa', icon: '📊', path: '/dosen/progres' },
     { title: 'Berikan Nilai', desc: 'Input nilai magang', icon: '🏅', path: '/dosen/nilai' },
     { title: 'Surat Rekomendasi', desc: 'Kelola permintaan', icon: '✍️', path: '/dosen/rekomendasi' },
+    { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/dosen/ubah-password' },
   ];
 
   const mahasiswaList = [
@@ -28,8 +31,8 @@ export default function DashboardDosen() {
     <div className="min-h-screen bg-gray-50 pb-12">
       <Header 
         title="Dashboard Dosen Pembimbing" 
-        userName="Dr. Ahmad Suryadi, M.Kom" 
-        userDetail="NIDN. 0012345678" 
+        userName={user?.nama} 
+        userDetail={`NIP. ${user?.nip}`} 
         bgColor="bg-green-600" 
       />
 
