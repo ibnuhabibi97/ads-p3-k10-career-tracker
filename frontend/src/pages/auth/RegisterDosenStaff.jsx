@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function RegisterDosenStaff() {
   const navigate = useNavigate();
@@ -12,12 +13,10 @@ export default function RegisterDosenStaff() {
     password: '',
     nip: '',
   });
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
@@ -27,73 +26,75 @@ export default function RegisterDosenStaff() {
       };
       const response = await api.post('/auth/register', payload);
       if (response.status === 201) {
-        alert(`Registrasi ${activeRole} berhasil! Silakan login.`);
+        toast.success(`Registrasi ${activeRole} berhasil! Silakan login.`);
         navigate('/login');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Gagal melakukan registrasi. Pastikan data benar.');
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'string') {
+        toast.error(detail);
+      } else {
+        toast.error('Gagal melakukan registrasi. Pastikan data benar.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 py-12">
       <div className="flex flex-col items-center mb-6 text-center">
-        <div className="w-14 h-14 bg-indigo-500 text-white flex items-center justify-center rounded-2xl shadow-lg mb-4">
+        <div className={`w-14 h-14 text-white flex items-center justify-center rounded-2xl shadow-lg mb-4 transition-colors duration-300 ${activeRole === 'dosen' ? 'bg-emerald-600' : 'bg-indigo-600'}`}>
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Registrasi Dosen & Staff</h1>
-        <p className="text-sm text-gray-500">Buat akun untuk mengelola sistem magang</p>
+        <h1 className="text-2xl font-black text-gray-900 mb-1 tracking-tight">Registrasi Dosen & Staff</h1>
+        <p className="text-sm text-gray-500 font-medium">Buat akun untuk mengelola sistem magang</p>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-3xl p-8 max-w-lg w-full shadow-sm">
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-2 mb-6">
+      <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 max-w-xl w-full shadow-xl shadow-indigo-900/5">
+        <div className="flex gap-3 mb-8 bg-gray-50 p-1.5 rounded-2xl">
           <button
+            type="button"
             onClick={() => setActiveRole('dosen')}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-              activeRole === 'dosen' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeRole === 'dosen' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Dosen
           </button>
           <button
+            type="button"
             onClick={() => setActiveRole('staff')}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-              activeRole === 'staff' ? 'bg-indigo-500 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              activeRole === 'staff' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Staff
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Nama Lengkap</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Nama Lengkap</label>
               <input
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                placeholder="Nama Lengkap & Gelar"
+                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
                 value={formData.nama}
                 onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-700 block mb-1">Username</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Username</label>
               <input
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                placeholder="username_dosen"
+                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               />
@@ -101,33 +102,36 @@ export default function RegisterDosenStaff() {
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1">Email</label>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Email Institusi</label>
             <input
               type="email"
               required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+              placeholder="nama@apps.ipb.ac.id"
+              className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1">Password</label>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Password</label>
             <input
               type="password"
               required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+              placeholder="••••••••"
+              className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1">NIP</label>
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">NIP</label>
             <input
               type="text"
               required
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+              placeholder="Masukkan 18 digit NIP"
+              className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
               value={formData.nip}
               onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
             />
@@ -136,9 +140,9 @@ export default function RegisterDosenStaff() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-colors shadow-md shadow-indigo-100 mt-4 flex items-center justify-center ${
+            className={`w-full py-4 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all shadow-lg mt-4 flex items-center justify-center gap-2 ${
               isLoading ? 'opacity-70 cursor-not-allowed' : ''
-            }`}
+            } ${activeRole === 'dosen' ? 'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700' : 'bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700'}`}
           >
             {isLoading ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -146,14 +150,14 @@ export default function RegisterDosenStaff() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : (
-              `Daftar Sebagai ${activeRole.charAt(0).toUpperCase() + activeRole.slice(1)}`
+              `Daftar Sebagai ${activeRole.toUpperCase()}`
             )}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-gray-500 mt-8 font-medium">
           Sudah punya akun?{' '}
-          <Link to="/login" className="text-indigo-600 font-semibold hover:underline">
+          <Link to="/login" className="text-indigo-600 font-bold hover:underline">
             Masuk di sini
           </Link>
         </p>
