@@ -12,6 +12,7 @@ router = APIRouter(prefix="/pendaftaran", tags=["Pendaftaran"])
 # Definisi akses
 hanya_mahasiswa = RoleChecker(["mahasiswa"])
 hanya_staff = RoleChecker(["staff"])
+staff_dan_mahasiswa = RoleChecker(["staff", "mahasiswa"])
 
 @router.post("/", response_model=PendaftaranResponse, status_code=status.HTTP_201_CREATED)
 async def daftar_magang(
@@ -53,6 +54,46 @@ async def daftar_magang(
     # Gunakan await karena submit_pendaftaran sekarang async (untuk notifikasi)
     return await service.submit_pendaftaran(pendaftaran_data, current_user["user_id"])
 
+@router.get("/", response_model=list[PendaftaranResponse])
+def ambil_semua_pendaftaran(
+    current_user: dict = Depends(hanya_staff),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
+):
+    """Staff mengambil semua daftar pendaftaran magang."""
+    return service.ambil_semua_pendaftaran()
+
+@router.get("/saya", response_model=list[PendaftaranResponse])
+def lihat_lamaran_saya(
+    current_user: dict = Depends(hanya_mahasiswa),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
+):
+    """Mahasiswa melihat riwayat lamarannya sendiri."""
+    return service.ambil_riwayat_mahasiswa(current_user["user_id"])
+
+@router.get("/{pendaftaran_id}", response_model=PendaftaranResponse)
+def ambil_detail_pendaftaran(
+    pendaftaran_id: int,
+    current_user: dict = Depends(staff_dan_mahasiswa),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
+):
+    """Melihat detail pendaftaran (Staff atau Mahasiswa pemilik)."""
+    pendaftaran = service.ambil_detail_pendaftaran(pendaftaran_id)
+    
+    # Cek otorisasi jika mahasiswa
+    if current_user["role"] == "mahasiswa" and pendaftaran.mahasiswa_id != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Anda tidak memiliki akses ke data ini")
+        
+    return pendaftaran
+
+@router.get("/lowongan/{lowongan_id}", response_model=list[PendaftaranResponse])
+def ambil_pendaftaran_by_lowongan(
+    lowongan_id: int,
+    current_user: dict = Depends(hanya_staff),
+    service: PendaftaranService = Depends(get_pendaftaran_service)
+):
+    """Staff melihat semua pelamar pada lowongan tertentu."""
+    return service.ambil_pendaftaran_by_lowongan(lowongan_id)
+
 @router.patch("/{pendaftaran_id}/status", response_model=PendaftaranResponse)
 async def update_status_pendaftaran(
     pendaftaran_id: int,
@@ -67,11 +108,3 @@ async def update_status_pendaftaran(
         raise HTTPException(status_code=400, detail="Field status_seleksi wajib diisi")
         
     return await service.update_status_seleksi(pendaftaran_id, data.status_seleksi)
-
-@router.get("/saya", response_model=list[PendaftaranResponse])
-def lihat_lamaran_saya(
-    current_user: dict = Depends(hanya_mahasiswa),
-    service: PendaftaranService = Depends(get_pendaftaran_service)
-):
-    """Mahasiswa melihat riwayat lamarannya sendiri."""
-    return service.ambil_riwayat_mahasiswa(current_user["user_id"])
