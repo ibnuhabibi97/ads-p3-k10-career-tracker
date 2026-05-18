@@ -39,11 +39,11 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }, 1500);
       } else if (status === 403) {
-        toast.error('Anda tidak memiliki akses ke fitur ini.');
+        // Tampilkan pesan detail dari backend jika ada (misal: "Akses ditolak. Endpoint ini hanya...")
+        toast.error(detail || 'Akses ditolak. Anda tidak memiliki izin untuk fitur ini.');
       } else if (status === 500) {
         toast.error('Terjadi kesalahan pada server. Coba beberapa saat lagi.');
       } else if (detail) {
-        // Tampilkan pesan error spesifik dari backend (jika bukan 401)
         if (status !== 401) toast.error(detail);
       }
     } else {
