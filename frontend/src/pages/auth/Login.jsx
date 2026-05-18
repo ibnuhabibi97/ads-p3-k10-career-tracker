@@ -98,9 +98,9 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <button type="button" className="text-xs text-indigo-600 hover:underline font-medium">
+            <Link to="/forgot-password" title="Klik untuk mereset password Anda" className="text-xs text-indigo-600 hover:underline font-medium">
               Lupa password?
-            </button>
+            </Link>
           </div>
 
           <button

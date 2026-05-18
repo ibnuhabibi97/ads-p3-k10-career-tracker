@@ -10,6 +10,8 @@ const Login = lazy(() => import('../pages/auth/Login'));
 const RegisterMahasiswa = lazy(() => import('../pages/auth/RegisterMahasiswa'));
 const RegisterDosenStaff = lazy(() => import('../pages/auth/RegisterDosenStaff'));
 const ChangePassword = lazy(() => import('../pages/auth/ChangePassword'));
+const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
 
 // Halaman Mahasiswa
 const DashboardMahasiswa = lazy(() => import('../pages/mahasiswa/DashboardMahasiswa'));
@@ -52,6 +54,22 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <Login />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ForgotPassword />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ResetPassword />
       </Suspense>
     ),
   },
