@@ -99,3 +99,18 @@ class PendaftaranService:
 
     def ambil_riwayat_mahasiswa(self, mahasiswa_id: int):
         return self.repo.get_by_mahasiswa(mahasiswa_id)
+
+    def ambil_semua_pendaftaran(self):
+        """Staff melihat semua lamaran yang masuk."""
+        return self.repo.get_all()
+
+    def ambil_pendaftaran_by_lowongan(self, lowongan_id: int):
+        """Staff melihat lamaran khusus pada lowongan tertentu."""
+        return self.repo.get_by_lowongan(lowongan_id)
+
+    def ambil_detail_pendaftaran(self, pendaftaran_id: int):
+        """Mengambil detail pendaftaran berdasarkan ID."""
+        db_pendaftaran = self.repo.get_by_id(pendaftaran_id)
+        if not db_pendaftaran:
+            raise HTTPException(status_code=404, detail="Data pendaftaran tidak ditemukan")
+        return db_pendaftaran
