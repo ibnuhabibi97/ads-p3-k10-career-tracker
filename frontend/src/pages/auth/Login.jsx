@@ -1,28 +1,35 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { login } = useAuth();
   
-  // Ambil state role dari halaman home (jika ada), default ke 'mahasiswa'
-  const [activeRole, setActiveRole] = useState('mahasiswa');
-  const [formData, setFormData] = useState({ identifier: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (location.state?.selectedRole) {
-      setActiveRole(location.state.selectedRole);
-    }
-  }, [location.state]);
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Proses autentikasi di sini...
+    setError('');
+    setIsLoading(true);
     
-    // Contoh redirect setelah login sukses berdasarkan role
-    if (activeRole === 'mahasiswa') navigate('/mahasiswa/dashboard');
-    else if (activeRole === 'dosen') navigate('/dosen/dashboard');
-    else if (activeRole === 'staff') navigate('/staff/dashboard');
+    const result = await login(formData.email, formData.password);
+    
+    if (result.success) {
+      // Redirect berdasarkan role dari backend
+      const dashboardMap = {
+        MAHASISWA: '/mahasiswa/dashboard',
+        DOSEN: '/dosen/dashboard',
+        STAFF: '/staff/dashboard',
+      };
+      navigate(dashboardMap[result.role] || '/');
+    } else {
+      setError(result.message);
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -41,35 +48,16 @@ export default function Login() {
 
       {/* Card Form */}
       <div className="bg-white border border-gray-100 rounded-3xl p-8 max-w-md w-full shadow-sm">
-        <label className="text-sm font-semibold text-gray-700 block mb-3">Masuk Sebagai</label>
-        
-        {/* Role Tabs Selection */}
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          {[
-            { id: 'mahasiswa', label: 'Mahasiswa', icon: '🎓' },
-            { id: 'dosen', label: 'Dosen', icon: '👥' },
-            { id: 'staff', label: 'Staff', icon: '💼' },
-          ].map((role) => (
-            <button
-              key={role.id}
-              type="button"
-              onClick={() => setActiveRole(role.id)}
-              className={`py-3 px-2 rounded-xl border flex flex-col items-center gap-1 text-xs font-medium transition-all ${
-                activeRole === role.id
-                  ? 'border-indigo-500 bg-indigo-50/50 text-indigo-600 ring-2 ring-indigo-100'
-                  : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              <span className="text-lg">{role.icon}</span>
-              {role.label}
-            </button>
-          ))}
-        </div>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center">
+            {error}
+          </div>
+        )}
 
         {/* Input Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-1">Email atau NIM/NIP</label>
+            <label className="text-sm font-semibold text-gray-700 block mb-1">Email</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,12 +65,12 @@ export default function Login() {
                 </svg>
               </span>
               <input
-                type="text"
+                type="email"
                 required
-                placeholder="Masukkan email atau NIM/NIP"
+                placeholder="Masukkan email"
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
-                value={formData.identifier}
-                onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
           </div>
@@ -114,9 +102,19 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-colors shadow-md shadow-indigo-100 mt-2"
+            disabled={isLoading}
+            className={`w-full py-3 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-colors shadow-md shadow-indigo-100 mt-2 flex items-center justify-center ${
+              isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
           >
-            Masuk
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              'Masuk'
+            )}
           </button>
         </form>
       </div>
