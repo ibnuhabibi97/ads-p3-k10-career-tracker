@@ -29,9 +29,10 @@ api.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       const detail = error.response.data?.detail;
+      const config = error.config;
 
-      // Token kedaluwarsa atau tidak valid
-      if (status === 401) {
+      // Token kedaluwarsa atau tidak valid (kecuali pada request login)
+      if (status === 401 && !config.url.includes('/auth/login')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         toast.error('Sesi Anda berakhir. Silakan login kembali.');
@@ -39,23 +40,20 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }, 1500);
       } else if (status === 403) {
-        // Tampilkan pesan detail dari backend jika ada (misal: "Akses ditolak. Endpoint ini hanya...")
         toast.error(detail || 'Akses ditolak. Anda tidak memiliki izin untuk fitur ini.');
       } else if (status === 500) {
         toast.error('Terjadi kesalahan pada server. Coba beberapa saat lagi.');
-      } else if (detail) {
-        if (status !== 401) {
-          let message = 'Terjadi kesalahan.';
-          if (typeof detail === 'string') {
-            message = detail;
-          } else if (Array.isArray(detail)) {
-            // Biasanya error validasi FastAPI: [{msg: "...", ...}]
-            message = detail[0]?.msg || JSON.stringify(detail);
-          } else if (typeof detail === 'object') {
-            message = detail.message || JSON.stringify(detail);
-          }
-          toast.error(message);
+      } else if (detail && status !== 401) {
+        // Jangan tampilkan toast otomatis untuk 401 (akan ditangani oleh pemanggil fungsi login)
+        let message = 'Terjadi kesalahan.';
+        if (typeof detail === 'string') {
+          message = detail;
+        } else if (Array.isArray(detail)) {
+          message = detail[0]?.msg || JSON.stringify(detail);
+        } else if (typeof detail === 'object') {
+          message = detail.message || JSON.stringify(detail);
         }
+        toast.error(message);
       }
     } else {
       toast.error('Koneksi internet terputus atau server tidak merespon.');
