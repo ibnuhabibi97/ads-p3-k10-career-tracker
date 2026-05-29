@@ -12,6 +12,7 @@ const RegisterDosenStaff = lazy(() => import('../pages/auth/RegisterDosenStaff')
 const ChangePassword = lazy(() => import('../pages/auth/ChangePassword'));
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
+const ProfilePage = lazy(() => import('../pages/auth/ProfilePage'));
 
 // Halaman Mahasiswa
 const DashboardMahasiswa = lazy(() => import('../pages/mahasiswa/DashboardMahasiswa'));
@@ -108,6 +109,7 @@ const router = createBrowserRouter([
       { path: 'laporan/:laporanId/logbook', element: <Suspense fallback={<DashboardSkeleton />}><DetailLogbook /></Suspense> },
       { path: 'lowongan', element: <Suspense fallback={<DashboardSkeleton />}><LihatLowongan /></Suspense> },
       { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
+      { path: 'profil', element: <Suspense fallback={<DashboardSkeleton />}><ProfilePage /></Suspense> },
     ],
   },
   {
@@ -123,6 +125,7 @@ const router = createBrowserRouter([
       { path: 'rekomendasi', element: <Suspense fallback={<DashboardSkeleton />}><SuratRekomendasi /></Suspense> },
       { path: 'progres', element: <Suspense fallback={<DashboardSkeleton />}><TinjauProgres /></Suspense> },
       { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
+      { path: 'profil', element: <Suspense fallback={<DashboardSkeleton />}><ProfilePage /></Suspense> },
     ],
   },
   {
@@ -138,6 +141,7 @@ const router = createBrowserRouter([
       { path: 'tambah-lowongan', element: <Suspense fallback={<DashboardSkeleton />}><TambahLowongan /></Suspense> },
       { path: 'verifikasi', element: <Suspense fallback={<DashboardSkeleton />}><VerifikasiPendaftaran /></Suspense> },
       { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
+      { path: 'profil', element: <Suspense fallback={<DashboardSkeleton />}><ProfilePage /></Suspense> },
     ],
   },
   // Fallback jika route tidak ditemukan

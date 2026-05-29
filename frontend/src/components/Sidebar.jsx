@@ -72,6 +72,13 @@ export default function Sidebar() {
 
       <div className="space-y-4">
         <Link 
+          to={`/${role.toLowerCase()}/profil`}
+          className="flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
+        >
+          <span className="text-xl opacity-80">👤</span>
+          Profil Saya
+        </Link>
+        <Link 
           to={`/${role.toLowerCase()}/ubah-password`}
           className="flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
         >
