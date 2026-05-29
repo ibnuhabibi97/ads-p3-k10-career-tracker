@@ -1,170 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
-import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function HubungiDosen() {
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const [dosenList, setDosenList] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [formData, setFormData] = useState({ dosen_id: '', file_draft: null });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-
-  const fetchData = async () => {
-    try {
-      const [dosenRes, historyRes] = await Promise.all([
-        api.get('/users/dosen'),
-        api.get('/surat-rekomendasi/mahasiswa/saya')
-      ]);
-      setDosenList(dosenRes.data);
-      setHistory(historyRes.data);
-    } catch (err) {
-      console.error('Gagal memuat data:', err);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+  const [pembimbing, setPembimbing] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    const fetchPembimbing = async () => {
+      try {
+        const response = await api.get('/users/me');
+        if (response.data.dosen_pembimbing_id) {
+          // Fetch detail dosen
+          const dosenRes = await api.get('/users/dosen');
+          const currentDosen = dosenRes.data.find(d => d.user_id === response.data.dosen_pembimbing_id);
+          setPembimbing(currentDosen);
+        }
+      } catch (err) {
+        console.error('Gagal memuat data pembimbing:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPembimbing();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.dosen_id || !formData.file_draft) {
-      toast.error("Silakan pilih dosen dan unggah draf surat!");
-      return;
-    }
-
-    setIsLoading(true);
-    const data = new FormData();
-    data.append('dosen_id', formData.dosen_id);
-    data.append('file', formData.file_draft); // Harus 'file' sesuai backend
-
-    try {
-      const response = await api.post('/surat-rekomendasi/', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      if (response.status === 201 || response.status === 200) {
-        toast.success("Permintaan surat rekomendasi berhasil dikirim!");
-        setFormData({ dosen_id: '', file_draft: null });
-        fetchData();
-      }
-    } catch (err) {
-      // Error detail sudah dihandle oleh global interceptor di api.js
-      console.error("Submission error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Surat Rekomendasi" 
-        userName={user?.nama} 
-        userDetail={`NIM. ${user?.nim}`} 
-        bgColor="bg-blue-600" 
-      />
-
-      <main className="max-w-6xl mx-auto px-6 mt-6 space-y-6">
-        <div className="flex justify-end">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="px-4 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            Kembali
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Form Request */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Ajukan Rekomendasi</h2>
-              <p className="text-sm text-gray-500 mt-1">Pilih dosen dan unggah draf surat rekomendasi Anda (PDF).</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Pilih Dosen</label>
-                <select 
-                  required
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all"
-                  value={formData.dosen_id}
-                  onChange={(e) => setFormData({ ...formData, dosen_id: e.target.value })}
-                >
-                  <option value="">Pilih dosen...</option>
-                  {dosenList.map((d) => (
-                    <option key={d.user_id} value={d.user_id}>{d.nama} ({d.nip || 'N/A'})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Unggah Draf Surat (PDF)</label>
-                <input 
-                  type="file" 
-                  required 
-                  accept=".pdf"
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all"
-                  onChange={(e) => setFormData({ ...formData, file_draft: e.target.files[0] })}
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={isLoading}
-                className={`w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 flex items-center justify-center gap-2 ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isLoading && (
-                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                Kirim Permintaan
-              </button>
-            </form>
-          </div>
-
-          {/* History Request */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">Riwayat Pengajuan</h2>
-            <div className="space-y-4">
-              {isLoadingData ? (
-                <p className="text-center text-gray-400 text-sm py-8">Memuat riwayat...</p>
-              ) : history.length > 0 ? (
-                history.map((item) => (
-                  <div key={item.rekomendasi_id} className="p-4 border border-gray-100 rounded-xl bg-gray-50/30 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">{item.dosen_nama}</p>
-                      <p className="text-[10px] text-gray-400 font-medium">{new Date(item.tanggal_pengajuan).toLocaleDateString('id-ID')}</p>
-                      <div className="mt-2 flex gap-2">
-                        <a href={item.dokumen_draft} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 font-bold hover:underline">Draft</a>
-                        {item.dokumen_final && (
-                          <a href={item.dokumen_final} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-600 font-bold hover:underline">Surat TTD</a>
-                        )}
-                      </div>
-                    </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                      item.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                      item.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {item.status}
-                    </span>
+    <div className="pb-12">
+      <main className="max-w-4xl mx-auto mt-8 space-y-8">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-10 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+          
+          <div className="relative z-10 space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Dosen Pembimbing Akademik</h2>
+            
+            {isLoading ? (
+              <div className="py-10 text-center text-gray-400">Memuat data...</div>
+            ) : pembimbing ? (
+              <div className="flex flex-col md:flex-row gap-10 items-center md:items-start pt-4">
+                <div className="w-40 h-40 bg-indigo-100 rounded-[3rem] flex items-center justify-center text-5xl font-black text-indigo-600 shadow-inner">
+                  {pembimbing.nama?.charAt(0)}
+                </div>
+                <div className="flex-1 space-y-6 text-center md:text-left">
+                  <div>
+                    <h3 className="text-3xl font-black text-gray-900 leading-tight">{pembimbing.nama}</h3>
+                    <p className="text-indigo-600 font-bold tracking-widest uppercase text-sm mt-2">NIP. {pembimbing.nip}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-400 text-sm py-8 italic">Belum ada riwayat pengajuan.</p>
-              )}
-            </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <a 
+                      href={\`mailto:\${pembimbing.email}\`}
+                      className="p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-indigo-50 hover:border-indigo-100 transition-all group"
+                    >
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-indigo-400">Alamat Email</p>
+                      <p className="text-sm font-bold text-gray-700 mt-1">{pembimbing.email}</p>
+                    </a>
+                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl group">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ruang Kerja</p>
+                      <p className="text-sm font-bold text-gray-700 mt-1">Departemen Ilmu Komputer</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex flex-col md:flex-row gap-4">
+                    <a 
+                      href={\`https://wa.me/\`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-8 py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all text-center shadow-lg shadow-green-100"
+                    >
+                      Chat WhatsApp
+                    </a>
+                    <button 
+                      onClick={() => toast.success('Fitur janji temu segera hadir!')}
+                      className="px-8 py-4 bg-white border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all"
+                    >
+                      Buat Janji Temu
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200">
+                <p className="text-gray-400 font-bold italic">Anda belum memiliki dosen pembimbing yang terdaftar.</p>
+                <p className="text-xs text-gray-400 mt-2">Silakan hubungi staf departemen untuk penempatan pembimbing.</p>
+              </div>
+            )}
           </div>
         </div>
       </main>

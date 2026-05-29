@@ -1,132 +1,97 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import Header from '../../components/Header';
-import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function ChangePassword() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [formData, setFormData] = useState({
     password_lama: '',
     password_baru: '',
     konfirmasi_password: ''
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (formData.password_baru !== formData.konfirmasi_password) {
-      toast.error('Konfirmasi password tidak cocok.');
+      toast.error('Konfirmasi password tidak cocok');
       return;
     }
 
-    if (formData.password_baru.length < 8) {
-      toast.error('Password baru minimal 8 karakter.');
-      return;
-    }
-
-    setIsLoading(true);
-
+    setIsSubmitting(true);
+    const loadingToast = toast.loading('Memperbarui password...');
     try {
-      const response = await api.put('/auth/change-password', {
+      await api.post('/auth/change-password', {
         password_lama: formData.password_lama,
         password_baru: formData.password_baru
       });
-      
-      if (response.status === 200) {
-        toast.success('Password berhasil diperbarui!');
-        setFormData({ password_lama: '', password_baru: '', konfirmasi_password: '' });
-        // Optional: Logout or redirect
-      }
+      toast.success('Password berhasil diperbarui!', { id: loadingToast });
+      navigate(-1);
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      toast.error(typeof detail === 'string' ? detail : 'Gagal mengubah password.');
+      toast.error(err.response?.data?.detail || 'Gagal memperbarui password', { id: loadingToast });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Pengaturan Keamanan" 
-        userName={user?.nama} 
-        userDetail={user?.role?.toUpperCase()}
-        bgColor="bg-indigo-600"
-        onBackClick={() => navigate(-1)}
-      />
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-      <div className="max-w-xl mx-auto mt-12 px-6">
-        <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 shadow-xl shadow-indigo-900/5">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">
-              🔐
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tight">Ubah Password</h2>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">Perbarui keamanan akun Anda</p>
-            </div>
+  return (
+    <div className="pb-12">
+      <main className="max-w-2xl mx-auto mt-8">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
+          <div className="flex justify-between items-center border-b border-gray-50 pb-4">
+            <h2 className="text-xl font-bold text-gray-900">Ubah Password Akun</h2>
+            <button 
+              onClick={() => navigate(-1)} 
+              className="px-4 py-1.5 bg-gray-50 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              Kembali
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Password Saat Ini</label>
-              <input
-                type="password"
-                required
-                placeholder="Masukkan password lama"
-                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Password Saat Ini</label>
+              <input 
+                type="password" name="password_lama" required
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 transition-all"
                 value={formData.password_lama}
-                onChange={(e) => setFormData({ ...formData, password_lama: e.target.value })}
+                onChange={handleChange}
               />
             </div>
-
-            <div className="pt-2 border-t border-gray-50 mt-2">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Password Baru</label>
-              <input
-                type="password"
-                required
-                placeholder="Minimal 8 karakter"
-                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
+            <div className="pt-2 border-t border-gray-50">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Password Baru</label>
+              <input 
+                type="password" name="password_baru" required minLength={8}
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 transition-all"
                 value={formData.password_baru}
-                onChange={(e) => setFormData({ ...formData, password_baru: e.target.value })}
+                onChange={handleChange}
               />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Ulangi Password Baru</label>
-              <input
-                type="password"
-                required
-                placeholder="Pastikan sama dengan password baru"
-                className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all font-medium"
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Konfirmasi Password Baru</label>
+              <input 
+                type="password" name="konfirmasi_password" required
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 transition-all"
                 value={formData.konfirmasi_password}
-                onChange={(e) => setFormData({ ...formData, konfirmasi_password: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 mt-4 flex items-center justify-center gap-2 ${
-                isLoading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className={\`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 \${isSubmitting ? 'opacity-70' : ''}\`}
             >
-              {isLoading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                'Simpan Perubahan'
-              )}
+              Update Password
             </button>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

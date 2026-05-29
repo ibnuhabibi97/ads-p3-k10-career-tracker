@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -19,7 +18,7 @@ export default function DashboardDosen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get(`/laporan/dosen/${user.user_id}`);
+        const response = await api.get(\`/laporan/dosen/\${user.user_id}\`);
         const data = response.data;
         setMahasiswaList(data);
 
@@ -52,15 +51,8 @@ export default function DashboardDosen() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Dashboard Dosen Pembimbing" 
-        userName={user?.nama} 
-        userDetail={`NIP. ${user?.nip}`} 
-        bgColor="bg-green-600" 
-      />
-
-      <main className="max-w-7xl mx-auto px-6 mt-8 space-y-8">
+    <div className="pb-12">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Row Stat Kecil */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((stat, idx) => (
@@ -118,16 +110,16 @@ export default function DashboardDosen() {
                         <td className="py-4 px-6 font-medium text-gray-900">{laporan.mahasiswa_nama}</td>
                         <td className="py-4 px-6 text-gray-500">{laporan.mahasiswa_nim}</td>
                         <td className="py-4 px-6">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          <span className={\`px-2.5 py-1 rounded-full text-[10px] font-bold border \${
                             laporan.status === 'GRADED' ? 'bg-green-50 text-green-700 border-green-200' : 
                             laporan.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' : 
                             'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
+                          }\`}>
                             {laporan.status}
                           </span>
                         </td>
                         <td className="py-4 px-6">
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${laporan.nilai ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'text-gray-400'}`}>
+                          <span className={\`px-2 py-0.5 rounded text-xs font-bold \${laporan.nilai ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'text-gray-400'}\`}>
                             {laporan.nilai || '-'}
                           </span>
                         </td>
@@ -143,7 +135,7 @@ export default function DashboardDosen() {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

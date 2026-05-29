@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -22,8 +21,7 @@ export default function BerikanNilai() {
   useEffect(() => {
     const fetchMahasiswa = async () => {
       try {
-        const response = await api.get(`/laporan/dosen/${user.user_id}`);
-        // Hanya ambil yang sudah upload laporan atau yang statusnya pending/rejected
+        const response = await api.get(\`/laporan/dosen/\${user.user_id}\`);
         setMahasiswaList(response.data);
       } catch (err) {
         console.error('Gagal memuat daftar mahasiswa:', err);
@@ -48,7 +46,7 @@ export default function BerikanNilai() {
     setIsLoadingSubmit(true);
 
     try {
-      const response = await api.patch(`/laporan/${formData.laporan_id}/nilai`, {
+      const response = await api.patch(\`/laporan/\${formData.laporan_id}/nilai\`, {
         nilai: parseInt(formData.nilai),
         status: formData.status,
         catatan: formData.catatan
@@ -68,15 +66,8 @@ export default function BerikanNilai() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Berikan Nilai" 
-        userName={user?.nama} 
-        userDetail={`NIP. ${user?.nip}`} 
-        bgColor="bg-green-600" 
-      />
-
-      <main className="max-w-3xl mx-auto px-6 mt-8">
+    <div className="pb-12">
+      <main className="max-w-3xl mx-auto mt-8">
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
           <div className="flex justify-between items-center border-b border-gray-50 pb-4">
             <h2 className="text-xl font-bold text-gray-900">Form Penilaian Magang</h2>
@@ -85,7 +76,7 @@ export default function BerikanNilai() {
               onClick={() => navigate(-1)} 
               className="px-4 py-1.5 bg-gray-50 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-100 transition-colors"
             >
-              Batal
+              Kembali
             </button>
           </div>
 
@@ -156,9 +147,9 @@ export default function BerikanNilai() {
             <button 
               type="submit" 
               disabled={isSubmitting || isLoading}
-              className={`w-full py-3.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors shadow-md shadow-green-100 flex items-center justify-center ${
+              className={\`w-full py-3.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors shadow-md shadow-green-100 flex items-center justify-center \${
                 (isSubmitting || isLoading) ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              }\`}
             >
               {isSubmitting ? (
                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

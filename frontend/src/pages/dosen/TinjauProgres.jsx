@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -15,7 +14,7 @@ export default function TinjauProgres() {
   useEffect(() => {
     const fetchMahasiswa = async () => {
       try {
-        const response = await api.get(`/laporan/dosen/${user.user_id}`);
+        const response = await api.get(\`/laporan/dosen/\${user.user_id}\`);
         setMahasiswaList(response.data);
         if (response.data.length > 0) {
           handleSelectMahasiswa(response.data[0]);
@@ -34,7 +33,7 @@ export default function TinjauProgres() {
     setSelectedLaporan(laporan);
     setIsFetchingLogbook(true);
     try {
-      const response = await api.get(`/logbook/laporan/${laporan.laporan_id}`);
+      const response = await api.get(\`/logbook/laporan/\${laporan.laporan_id}\`);
       setLogbooks(response.data);
     } catch (err) {
       console.error('Gagal memuat logbook:', err);
@@ -45,15 +44,8 @@ export default function TinjauProgres() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Tinjau Progres" 
-        userName={user?.nama} 
-        userDetail={`NIP. ${user?.nip}`} 
-        bgColor="bg-green-600" 
-      />
-
-      <main className="max-w-5xl mx-auto px-6 mt-8 space-y-6">
+    <div className="pb-12">
+      <div className="max-w-5xl mx-auto mt-8 space-y-6">
         {/* Pilih Mahasiswa Dropdown */}
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <label className="text-sm font-bold text-gray-700 block mb-2">Pilih Mahasiswa Bimbingan</label>
@@ -163,7 +155,7 @@ export default function TinjauProgres() {
             </div>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }

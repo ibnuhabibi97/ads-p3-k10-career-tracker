@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -103,14 +102,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
-      <Header 
-        title="Profil Pengguna" 
-        userName={user?.nama} 
-        userDetail={user?.role === 'mahasiswa' ? `NIM. ${user?.nim}` : `NIP. ${user?.nip}`}
-      />
-
-      <main className="max-w-3xl mx-auto px-6 mt-8">
+    <div className="pb-12">
+      <main className="max-w-3xl mx-auto mt-8">
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-8 border-b border-gray-50 bg-indigo-50/30 flex items-center gap-6">
              <div className="w-24 h-24 bg-indigo-100 rounded-[2rem] flex items-center justify-center text-4xl font-black text-indigo-600 shadow-inner">
@@ -236,7 +229,7 @@ export default function ProfilePage() {
                   <button 
                     type="submit" 
                     disabled={isSaving}
-                    className={`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    className={\`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 \${isSaving ? 'opacity-70 cursor-not-allowed' : ''}\`}
                   >
                     {isSaving ? 'Menyimpan...' : 'Simpan Perubahan Profil'}
                   </button>
@@ -247,5 +240,3 @@ export default function ProfilePage() {
         </div>
       </main>
     </div>
-  );
-}
