@@ -70,10 +70,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 class RoleChecker:
     """Class untuk membatasi akses endpoint berdasarkan role."""
     def __init__(self, allowed_roles: list):
-        self.allowed_roles = allowed_roles
+        self.allowed_roles = [role.lower() for role in allowed_roles]
 
     def __call__(self, current_user: dict = Depends(get_current_user)):
-        if current_user["role"] not in self.allowed_roles:
+        user_role = str(current_user["role"]).lower()
+        if user_role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Akses ditolak. Endpoint ini hanya diperuntukkan bagi role: {', '.join(self.allowed_roles)}"
