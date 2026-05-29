@@ -3,6 +3,7 @@ import Header from '../../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function BerikanNilai() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function BerikanNilai() {
         setMahasiswaList(response.data);
       } catch (err) {
         console.error('Gagal memuat daftar mahasiswa:', err);
+        toast.error('Gagal memuat daftar mahasiswa.');
       } finally {
         setIsLoading(false);
       }
@@ -38,10 +40,11 @@ export default function BerikanNilai() {
     setError('');
     
     if (!formData.laporan_id) {
-      setError('Silakan pilih mahasiswa terlebih dahulu.');
+      toast.error('Silakan pilih mahasiswa terlebih dahulu.');
       return;
     }
 
+    const loadingToast = toast.loading('Menyimpan penilaian...');
     setIsLoadingSubmit(true);
 
     try {
@@ -52,11 +55,13 @@ export default function BerikanNilai() {
       });
       
       if (response.status === 200) {
-        alert("Penilaian berhasil disimpan!");
+        toast.success("Penilaian berhasil disimpan!", { id: loadingToast });
         navigate('/dosen/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Gagal menyimpan penilaian.');
+      const errorMsg = err.response?.data?.detail || 'Gagal menyimpan penilaian.';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: loadingToast });
     } finally {
       setIsLoadingSubmit(false);
     }
