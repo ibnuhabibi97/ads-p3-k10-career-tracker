@@ -25,3 +25,11 @@ class NotifikasiRepository:
             self.db.commit()
             self.db.refresh(db_notif)
         return db_notif
+
+    def mark_all_as_read(self, user_id: int):
+        self.db.query(Notifikasi).filter(
+            Notifikasi.user_id == user_id, 
+            Notifikasi.is_read == False
+        ).update({"is_read": True})
+        self.db.commit()
+        return True

@@ -19,3 +19,6 @@ class NotifikasiService:
             raise HTTPException(status_code=403, detail="Akses ditolak")
             
         return self.repo.mark_as_read(notifikasi_id)
+
+    def tandai_semua_dibaca(self, user_id: int):
+        return self.repo.mark_all_as_read(user_id)

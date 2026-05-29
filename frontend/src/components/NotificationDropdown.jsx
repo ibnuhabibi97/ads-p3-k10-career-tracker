@@ -1,26 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const response = await api.get('/notifikasi/');
       setNotifications(response.data);
       setUnreadCount(response.data.filter(n => !n.is_read).length);
     } catch (err) {
       console.error('Gagal memuat notifikasi:', err);
+      // Jika 401, biarkan interceptor api.js yang menangani
+    } finally {
+      if (!silent) setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    // Refresh notifications every 60 seconds
-    const interval = setInterval(fetchNotifications, 60000);
+    // Refresh notifications every 60 seconds (silent polling)
+    const interval = setInterval(() => fetchNotifications(true), 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,6 +49,20 @@ export default function NotificationDropdown() {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Gagal menandai notifikasi dibaca:', err);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+    
+    const loadingToast = toast.loading('Menandai semua dibaca...');
+    try {
+      await api.patch('/notifikasi/read-all');
+      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+      toast.success('Semua notifikasi ditandai dibaca', { id: loadingToast });
+    } catch (err) {
+      toast.error('Gagal memperbarui notifikasi', { id: loadingToast });
     }
   };
 
@@ -69,11 +89,23 @@ export default function NotificationDropdown() {
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
           <div className="p-4 border-b border-gray-50 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 text-sm">Notifikasi</h3>
-            <button className="text-[10px] text-indigo-600 font-bold hover:underline">Tandai semua dibaca</button>
+            {unreadCount > 0 && (
+              <button 
+                onClick={markAllAsRead}
+                className="text-[10px] text-indigo-600 font-bold hover:underline"
+              >
+                Tandai semua dibaca
+              </button>
+            )}
           </div>
           
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length > 0 ? (
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-[10px] text-gray-400">Memuat...</p>
+              </div>
+            ) : notifications.length > 0 ? (
               notifications.map((n) => (
                 <div 
                   key={n.notifikasi_id}
@@ -100,8 +132,13 @@ export default function NotificationDropdown() {
             )}
           </div>
           
-          <div className="p-3 bg-gray-50 text-center">
-            <button className="text-[10px] text-gray-500 font-bold hover:text-indigo-600 transition-colors">Lihat Semua</button>
+          <div className="p-3 bg-gray-50 text-center border-t border-gray-50">
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="text-[10px] text-gray-500 font-bold hover:text-indigo-600 transition-colors"
+            >
+              Tutup
+            </button>
           </div>
         </div>
       )}

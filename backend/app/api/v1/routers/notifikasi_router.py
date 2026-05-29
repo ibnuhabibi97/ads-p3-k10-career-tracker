@@ -31,3 +31,12 @@ def tandai_dibaca(
 ):
     """Menandai notifikasi tertentu sebagai sudah dibaca."""
     return service.tandai_dibaca(notifikasi_id, current_user["user_id"])
+
+@router.patch("/read-all")
+def tandai_semua_dibaca(
+    current_user: dict = Depends(semua_user),
+    service: NotifikasiService = Depends(get_notifikasi_service)
+):
+    """Menandai semua notifikasi milik user sebagai sudah dibaca."""
+    service.tandai_semua_dibaca(current_user["user_id"])
+    return {"message": "Semua notifikasi berhasil ditandai sebagai dibaca"}
