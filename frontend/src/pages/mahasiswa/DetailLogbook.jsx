@@ -45,13 +45,22 @@ export default function DetailLogbook() {
     e.preventDefault();
     const data = new FormData();
     data.append('laporan_id', laporanId);
+    
+    // Append fields from formData
     Object.keys(formData).forEach(key => {
-        if (formData[key]) data.append(key, formData[key]);
+        if (key === 'file_dokumentasi') {
+            if (formData[key]) data.append(key, formData[key]);
+        } else if (formData[key] !== null && formData[key] !== '') {
+            data.append(key, formData[key]);
+        }
     });
 
     try {
       if (editingId) {
-        await api.put(`/logbook/${editingId}`, Object.fromEntries(data.entries()));
+        // Gunakan PUT dengan multipart/form-data
+        await api.put(`/logbook/${editingId}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         toast.success('Logbook diperbarui');
       } else {
         await api.post('/logbook/', data, {
@@ -61,6 +70,14 @@ export default function DetailLogbook() {
       }
       setEditingId(null);
       setIsFormOpen(false);
+      setFormData({
+        dosen_id: '',
+        waktu_mulai: '',
+        waktu_selesai: '',
+        keterangan: '',
+        jenis_kegiatan: '',
+        file_dokumentasi: null
+      });
       fetchData();
     } catch (err) {
       toast.error('Gagal menyimpan logbook.');
@@ -86,6 +103,7 @@ export default function DetailLogbook() {
         waktu_selesai: log.waktu_selesai,
         keterangan: log.keterangan,
         jenis_kegiatan: log.jenis_kegiatan,
+        file_dokumentasi: null
     });
     setIsFormOpen(true);
   };
@@ -114,7 +132,10 @@ export default function DetailLogbook() {
                 </div>
                 <input type="text" placeholder="Jenis Kegiatan" className="w-full p-3 border rounded-xl text-sm" value={formData.jenis_kegiatan} onChange={e => setFormData({...formData, jenis_kegiatan: e.target.value})} />
                 <textarea placeholder="Keterangan" className="w-full p-3 border rounded-xl text-sm" value={formData.keterangan} onChange={e => setFormData({...formData, keterangan: e.target.value})} />
-                {!editingId && <input type="file" className="w-full text-sm" onChange={e => setFormData({...formData, file_dokumentasi: e.target.files[0]})} />}
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">Dokumentasi (Opsional)</label>
+                    <input type="file" className="w-full text-sm" onChange={e => setFormData({...formData, file_dokumentasi: e.target.files[0]})} />
+                </div>
                 <button type="submit" className="w-full py-4 bg-green-600 text-white font-bold rounded-xl">{editingId ? 'Simpan Perubahan' : 'Simpan Logbook'}</button>
             </form>
         )}

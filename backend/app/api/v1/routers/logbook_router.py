@@ -101,14 +101,46 @@ def get_logbook_by_id(logbook_id: int, service: LogbookService = Depends(get_log
     return service.ambil_logbook_by_id(logbook_id)
 
 @router.put("/{logbook_id}", response_model=LogbookResponse)
-def update_logbook(
+async def update_logbook(
     logbook_id: int, 
-    logbook: LogbookUpdate, 
+    dosen_id: Optional[int] = Form(None),
+    waktu_mulai: Optional[datetime] = Form(None),
+    waktu_selesai: Optional[datetime] = Form(None),
+    keterangan: Optional[str] = Form(None),
+    jenis_kegiatan: Optional[str] = Form(None),
+    media: Optional[str] = Form(None),
+    file_dokumentasi: Optional[UploadFile] = File(None),
     current_user: dict = Depends(hanya_mahasiswa),
     service: LogbookService = Depends(get_logbook_service)
 ):
-    """Update logbook"""
-    return service.ubah_logbook(logbook_id, logbook, current_user["user_id"])
+    """Update logbook (mendukung update dokumentasi via upload)"""
+    public_url = None
+    if file_dokumentasi:
+        contents = await file_dokumentasi.read()
+        public_url = storage_client.upload(
+            file_data=contents,
+            file_name=file_dokumentasi.filename,
+            content_type=file_dokumentasi.content_type,
+            folder="dokumentasi"
+        )
+
+    # Susun data untuk update secara dinamis
+    update_params = {
+        "dosen_id": dosen_id,
+        "waktu_mulai": waktu_mulai,
+        "waktu_selesai": waktu_selesai,
+        "keterangan": keterangan,
+        "jenis_kegiatan": jenis_kegiatan,
+        "media": media
+    }
+    
+    # Hanya masukkan dokumentasi jika ada file baru yang diunggah
+    if public_url:
+        update_params["dokumentasi"] = public_url
+
+    update_data = LogbookUpdate(**update_params)
+
+    return service.ubah_logbook(logbook_id, update_data, current_user["user_id"])
 
 @router.delete("/{logbook_id}")
 def delete_logbook(
