@@ -10,6 +10,7 @@ export default function VerifikasiPendaftaran() {
   const { user } = useAuth();
   const [applicants, setApplicants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [previewFile, setPreviewFile] = useState(null);
 
   const fetchApplicants = async () => {
     setIsLoading(true);
@@ -53,6 +54,42 @@ export default function VerifikasiPendaftaran() {
         </div>
       </div>
 
+      {previewFile && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-5xl h-[85vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">📄</span>
+                <h3 className="font-black text-gray-900 tracking-tight">Pratinjau Dokumen</h3>
+              </div>
+              <button 
+                onClick={() => setPreviewFile(null)}
+                className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all shadow-sm"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 bg-gray-100 relative">
+              <iframe 
+                src={`${previewFile}#toolbar=0`} 
+                className="w-full h-full border-none"
+                title="Document Preview"
+              />
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+              <a 
+                href={previewFile} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-indigo-600 hover:underline"
+              >
+                Buka di tab baru untuk mengunduh ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 pb-12">
         {isLoading ? (
           <TableSkeleton />
@@ -88,22 +125,18 @@ export default function VerifikasiPendaftaran() {
                 <div className="space-y-3">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Berkas Pendaftaran</p>
                   <div className="flex flex-wrap gap-3">
-                    <a 
-                      href={app.dokumen_cv} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    <button 
+                      onClick={() => setPreviewFile(app.dokumen_cv)}
                       className="px-4 py-2 bg-white text-indigo-600 border border-indigo-100 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
                     >
                       📄 Curriculum Vitae
-                    </a>
-                    <a 
-                      href={app.dokumen_surat_rekomendasi} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    </button>
+                    <button 
+                      onClick={() => setPreviewFile(app.dokumen_surat_rekomendasi)}
                       className="px-4 py-2 bg-white text-indigo-600 border border-indigo-100 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
                     >
                       📄 Rekomendasi
-                    </a>
+                    </button>
                   </div>
                 </div>
 
@@ -129,7 +162,7 @@ export default function VerifikasiPendaftaran() {
                 <span className={`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border ${
                   app.status_seleksi === 'ACCEPTED' 
                     ? 'bg-green-100 text-green-700 border-green-200'
-                    : app.status_seleksi === 'REJECTED'
+                    : app.status_seleksi === 'REJECTED' 
                     ? 'bg-red-100 text-red-700 border-red-200'
                     : 'bg-amber-100 text-amber-700 border-amber-200'
                 }`}>
