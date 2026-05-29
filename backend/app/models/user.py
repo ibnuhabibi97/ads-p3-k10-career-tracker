@@ -26,6 +26,7 @@ class Mahasiswa(User):
     nim = Column(String, unique=True, index=True, nullable=False)
     fakultas = Column(String, nullable=False)
     prodi = Column(String, nullable=False)
+    dosen_pembimbing_id = Column(Integer, ForeignKey("dosen.user_id"), nullable=True)
 
     __mapper_args__ = {"polymorphic_identity": UserRole.MAHASISWA}
 
@@ -34,6 +35,7 @@ class Mahasiswa(User):
     laporans = relationship("Laporan", back_populates="mahasiswa")
     surat_rekomendasi = relationship("SuratRekomendasi", back_populates="mahasiswa")
     logbooks = relationship("Logbook", back_populates="mahasiswa")
+    pembimbing = relationship("Dosen", back_populates="mahasiswa_bimbingan", foreign_keys=[dosen_pembimbing_id])
 
 class Dosen(User):
     __tablename__ = "dosen"
@@ -46,6 +48,7 @@ class Dosen(User):
     laporans_dinilai = relationship("Laporan", back_populates="dosen")
     surat_diberikan = relationship("SuratRekomendasi", back_populates="dosen")
     logbooks_pembimbing = relationship("Logbook", back_populates="dosen")
+    mahasiswa_bimbingan = relationship("Mahasiswa", back_populates="pembimbing", foreign_keys="[Mahasiswa.dosen_pembimbing_id]")
 
 class Staff(User):
     __tablename__ = "staff"

@@ -26,6 +26,9 @@ class UserRepository:
     def get_all_dosen(self):
         return self.db.query(Dosen).all()
 
+    def get_mahasiswa_bimbingan(self, dosen_id: int):
+        return self.db.query(Mahasiswa).filter(Mahasiswa.dosen_pembimbing_id == dosen_id).all()
+
     # 2. UBAH FUNGSI CREATE
     def create(self, user_data: UserCreate, hashed_password: str):
         # Simpan user sebagai entitas role-specific agar SQLAlchemy menangani

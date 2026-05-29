@@ -10,9 +10,11 @@ from app.schemas.user_schema import (
     StaffResponse,
     UserUpdate
 )
-from app.core.security import get_current_user
+from app.core.security import get_current_user, RoleChecker
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+hanya_dosen = RoleChecker(["dosen"])
 
 @router.get("/me", response_model=Union[MahasiswaResponse, DosenResponse, StaffResponse, UserResponse])
 def get_me(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -38,6 +40,15 @@ def update_me(
     if not updated_user:
         raise HTTPException(status_code=404, detail="Gagal memperbarui profil")
     return updated_user
+
+@router.get("/mahasiswa-bimbingan", response_model=List[MahasiswaResponse])
+def get_mahasiswa_bimbingan(
+    current_user: dict = Depends(hanya_dosen), 
+    db: Session = Depends(get_db)
+):
+    """Dosen mendapatkan daftar mahasiswa bimbingannya."""
+    repo = UserRepository(db)
+    return repo.get_mahasiswa_bimbingan(current_user["user_id"])
 
 @router.get("/dosen", response_model=List[DosenResponse])
 def get_all_dosen(db: Session = Depends(get_db)):

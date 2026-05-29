@@ -45,6 +45,7 @@ class MahasiswaBase(UserBase):
     nim: str
     fakultas: str
     prodi: str
+    dosen_pembimbing_id: Optional[int] = None
 
 class MahasiswaCreate(MahasiswaBase):
     password: str
@@ -55,6 +56,7 @@ class MahasiswaUpdate(UserUpdate):
     nim: Optional[str] = None
     fakultas: Optional[str] = None
     prodi: Optional[str] = None
+    dosen_pembimbing_id: Optional[int] = None
 
 class MahasiswaResponse(MahasiswaBase):
     user_id: int

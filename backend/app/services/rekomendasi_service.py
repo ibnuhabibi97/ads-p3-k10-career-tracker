@@ -16,28 +16,37 @@ class SuratRekomendasiService:
         """
         Alur: Mahasiswa upload surat -> sistem notif ke dosen (sistem + email)
         """
-        # 1. Simpan data surat
+        # 1. Ambil data dosen pembimbing default jika tidak dikirim dari FE
+        dosen_id = data.dosen_id
+        if not dosen_id:
+            mahasiswa = self.user_repo.get_by_id(mahasiswa_id)
+            dosen_id = getattr(mahasiswa, 'dosen_pembimbing_id', None)
+            
+        if not dosen_id:
+            raise HTTPException(status_code=400, detail="Dosen pembimbing belum ditentukan untuk profil Anda.")
+
+        # 2. Simpan data surat
         data_dict = {
             "mahasiswa_id": mahasiswa_id,
-            "dosen_id": data.dosen_id,
+            "dosen_id": dosen_id,
             "dokumen_surat": public_url,
             "status_surat": SuratRekomendasiStatus.PENDING
         }
         db_surat = self.repo.create(data_dict)
 
-        # 2. Ambil data dosen & mahasiswa untuk notifikasi
-        dosen = self.user_repo.get_by_id(data.dosen_id)
+        # 3. Ambil data dosen & mahasiswa untuk notifikasi
+        dosen = self.user_repo.get_by_id(dosen_id)
         mahasiswa = self.user_repo.get_by_id(mahasiswa_id)
 
         if dosen:
-            # 3. Kirim notifikasi sistem ke dosen
+            # 4. Kirim notifikasi sistem ke dosen
             self.notif_repo.create({
                 "user_id": dosen.user_id,
                 "isi_notifikasi": f"Mahasiswa {mahasiswa.nama} mengajukan permohonan surat rekomendasi.",
                 "target_url": f"/dosen/surat-rekomendasi/{db_surat.surat_id}"
             })
 
-            # 4. Kirim email ke dosen
+            # 5. Kirim email ke dosen
             pesan_email = f"""
             <html>
             <body>
@@ -108,7 +117,7 @@ class SuratRekomendasiService:
         return self.repo.get_by_dosen(dosen_id)
 
     def ambil_detail_surat(self, surat_id: int, user_id: int):
-        surat = self.repo.get_by_id(surat_id)
+        surat = self.repo.get_id(surat_id)
         if not surat or (surat.mahasiswa_id != user_id and surat.dosen_id != user_id):
              raise HTTPException(status_code=403, detail="Akses ditolak.")
         return surat

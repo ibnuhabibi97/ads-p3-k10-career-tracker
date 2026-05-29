@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.logbook_repository import LogbookRepository
+from app.repositories.user_repository import UserRepository
 from app.schemas.logbook_schemas import LogbookCreate, LogbookUpdate
 
 class LogbookService:
     def __init__(self, db: Session):
         self.repo = LogbookRepository(db)
+        self.user_repo = UserRepository(db)
 
     def ambil_semua_logbook(self):
         """Ambil semua logbook"""
@@ -30,18 +32,26 @@ class LogbookService:
         """Ambil logbook berdasarkan jenis kegiatan"""
         return self.repo.get_by_jenis_kegiatan(jenis_kegiatan)
 
-    def ambil_logbook_by_dosen(self, dosen_pembimbing: str):
+    def ambil_logbook_by_dosen(self, dosen_id: int):
         """Ambil logbook berdasarkan dosen pembimbing"""
-        return self.repo.get_by_dosen_pembimbing(dosen_pembimbing)
+        return self.repo.get_by_dosen_id(dosen_id)
 
     def tambah_logbook(self, data: LogbookCreate, user_id: int):
         """Buat logbook baru"""
         data_dict = data.model_dump()
         
-        # Enforce mahasiswa_id dari current_user
-        data_dict["mahasiswa_id"] = user_id
+        # 1. Ambil data mahasiswa untuk mendapatkan dosen pembimbing default
+        mahasiswa = self.user_repo.get_by_id(user_id)
+        dosen_id = getattr(mahasiswa, 'dosen_pembimbing_id', None)
         
-        # Hitung durasi_kegiatan otomatis dari waktu_selesai - waktu_mulai
+        if not dosen_id:
+             raise HTTPException(status_code=400, detail="Dosen pembimbing belum ditentukan untuk profil Anda.")
+
+        # 2. Enforce IDs
+        data_dict["mahasiswa_id"] = user_id
+        data_dict["dosen_id"] = dosen_id
+        
+        # 3. Hitung durasi_kegiatan otomatis dari waktu_selesai - waktu_mulai
         waktu_mulai = data_dict.get("waktu_mulai")
         waktu_selesai = data_dict.get("waktu_selesai")
         

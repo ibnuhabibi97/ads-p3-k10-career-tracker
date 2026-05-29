@@ -56,9 +56,9 @@ class LaporanService:
         if laporan_ada:
             return laporan_ada
 
-        # 2. Ambil dosen pembimbing (pilih dosen pertama sebagai default jika ada)
-        all_dosen = self.user_repo.get_all_dosen()
-        dosen_id = all_dosen[0].user_id if all_dosen else None
+        # 2. Ambil data mahasiswa untuk mendapatkan dosen pembimbing default
+        mahasiswa = self.user_repo.get_by_id(mahasiswa_id)
+        dosen_id = getattr(mahasiswa, 'dosen_pembimbing_id', None)
 
         # 3. Buat Laporan
         laporan_data = {
