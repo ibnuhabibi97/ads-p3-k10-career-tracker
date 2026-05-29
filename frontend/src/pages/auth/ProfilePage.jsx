@@ -5,7 +5,8 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
-  const { user, login } = useAuth(); // We'll assume 'login' can also just update the context state if we pass the same token
+  const { user, login } = useAuth();
+  const [dosenList, setDosenList] = useState([]);
   const [profileData, setProfileData] = useState({
     nama: '',
     username: '',
@@ -13,16 +14,21 @@ export default function ProfilePage() {
     nim: '',
     nip: '',
     fakultas: '',
-    prodi: ''
+    prodi: '',
+    dosen_pembimbing_id: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/users/me');
-        const data = response.data;
+        const [profileRes, dosenRes] = await Promise.all([
+          api.get('/users/me'),
+          user?.role === 'mahasiswa' ? api.get('/users/dosen') : Promise.resolve({ data: [] })
+        ]);
+
+        const data = profileRes.data;
         setProfileData({
           nama: data.nama || '',
           username: data.username || '',
@@ -30,16 +36,18 @@ export default function ProfilePage() {
           nim: data.nim || '',
           nip: data.nip || '',
           fakultas: data.fakultas || '',
-          prodi: data.prodi || ''
+          prodi: data.prodi || '',
+          dosen_pembimbing_id: data.dosen_pembimbing_id || ''
         });
+        setDosenList(dosenRes.data);
       } catch (err) {
-        toast.error('Gagal memuat profil pengguna.');
+        toast.error('Gagal memuat data.');
       } finally {
         setIsLoading(false);
       }
     };
-    fetchProfile();
-  }, []);
+    fetchData();
+  }, [user?.role]);
 
   const handleChange = (e) => {
     setProfileData({
@@ -53,7 +61,6 @@ export default function ProfilePage() {
     const loadingToast = toast.loading('Menyimpan perubahan...');
     setIsSaving(true);
     
-    // Filter out empty fields that aren't relevant to the role to avoid validation errors
     const payload = {};
     if (profileData.nama) payload.nama = profileData.nama;
     if (profileData.username) payload.username = profileData.username;
@@ -63,6 +70,7 @@ export default function ProfilePage() {
         if (profileData.nim) payload.nim = profileData.nim;
         if (profileData.fakultas) payload.fakultas = profileData.fakultas;
         if (profileData.prodi) payload.prodi = profileData.prodi;
+        if (profileData.dosen_pembimbing_id) payload.dosen_pembimbing_id = parseInt(profileData.dosen_pembimbing_id);
     } else {
         if (profileData.nip) payload.nip = profileData.nip;
     }
@@ -71,25 +79,22 @@ export default function ProfilePage() {
       const response = await api.put('/users/me', payload);
       toast.success('Profil berhasil diperbarui!', { id: loadingToast });
       
-      // Update global context so header updates immediately
-      // This relies on the AuthContext using the local storage token, 
-      // but replacing the user object with the new response.
       const currentToken = localStorage.getItem('access_token');
       if (currentToken && login) {
-        // Construct a generic user object similar to what login expects
         const updatedUser = {
             ...user,
             nama: response.data.nama,
             username: response.data.username,
             email: response.data.email,
         };
-        // Update NIM or NIP based on role for the header
-        if (user.role === 'mahasiswa') updatedUser.nim = response.data.nim;
+        if (user.role === 'mahasiswa') {
+            updatedUser.nim = response.data.nim;
+            updatedUser.dosen_pembimbing_id = response.data.dosen_pembimbing_id;
+        }
         if (user.role === 'dosen' || user.role === 'staff') updatedUser.nip = response.data.nip;
         
         login(updatedUser, currentToken, user.role);
       }
-
     } catch (err) {
       toast.error('Gagal memperbarui profil.', { id: loadingToast });
     } finally {
@@ -133,7 +138,7 @@ export default function ProfilePage() {
                       value={profileData.nama}
                       onChange={handleChange}
                       required
-                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                     />
                   </div>
                   <div>
@@ -144,7 +149,7 @@ export default function ProfilePage() {
                       value={profileData.username}
                       onChange={handleChange}
                       required
-                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                     />
                   </div>
                 </div>
@@ -157,7 +162,7 @@ export default function ProfilePage() {
                     value={profileData.email}
                     onChange={handleChange}
                     required
-                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                   />
                 </div>
 
@@ -171,9 +176,25 @@ export default function ProfilePage() {
                           name="nim"
                           value={profileData.nim}
                           onChange={handleChange}
-                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                         />
                       </div>
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Dosen Pembimbing Akademik</label>
+                        <select 
+                          name="dosen_pembimbing_id"
+                          value={profileData.dosen_pembimbing_id}
+                          onChange={handleChange}
+                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
+                        >
+                          <option value="">Pilih Dosen...</option>
+                          {dosenList.map((d) => (
+                            <option key={d.user_id} value={d.user_id}>{d.nama} ({d.nip})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Program Studi</label>
                         <input 
@@ -181,19 +202,19 @@ export default function ProfilePage() {
                           name="prodi"
                           value={profileData.prodi}
                           onChange={handleChange}
-                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                         />
                       </div>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fakultas</label>
-                      <input 
-                        type="text" 
-                        name="fakultas"
-                        value={profileData.fakultas}
-                        onChange={handleChange}
-                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
-                      />
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Fakultas</label>
+                        <input 
+                          type="text" 
+                          name="fakultas"
+                          value={profileData.fakultas}
+                          onChange={handleChange}
+                          className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
+                        />
+                      </div>
                     </div>
                   </>
                 )}
@@ -206,7 +227,7 @@ export default function ProfilePage() {
                       name="nip"
                       value={profileData.nip}
                       onChange={handleChange}
-                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-indigo-500 transition-all"
                     />
                   </div>
                 )}
