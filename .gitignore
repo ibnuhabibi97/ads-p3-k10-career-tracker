@@ -154,3 +154,11 @@ __pycache__/
 #rtk ai
 .github
 context.txt
+
+#graphify 
+graphify-out
+
+#Gemini
+.gemini
+GEMINI.md
+endpoints.txt
