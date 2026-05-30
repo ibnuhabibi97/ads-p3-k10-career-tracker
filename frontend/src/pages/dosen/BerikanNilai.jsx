@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { TableSkeleton } from '../../components/Skeleton';
+import FilePreviewModal from '../../components/FilePreviewModal';
 
 export default function BerikanNilai() {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@ export default function BerikanNilai() {
   const [isSubmitting, setIsLoadingSubmit] = useState(false);
   const [isFetchingLogbook, setIsFetchingLogbook] = useState(false);
   
+  // Preview State
+  const [previewData, setPreviewData] = useState({ isOpen: false, url: '', title: '' });
+
   const [formData, setFormData] = useState({
     nilai: '',
     status: 'GRADED',
@@ -105,7 +109,7 @@ export default function BerikanNilai() {
            </div>
            <button 
              onClick={() => navigate(-1)} 
-             className="px-6 py-2.5 bg-gray-50 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-100 transition-all"
+             className="px-6 py-2.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-xl hover:bg-gray-100 transition-all"
            >
              Kembali
            </button>
@@ -145,14 +149,16 @@ export default function BerikanNilai() {
                          </div>
                       </div>
                       {selectedLaporan.dokumen_laporan && (
-                        <a 
-                          href={selectedLaporan.dokumen_laporan}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button 
+                          onClick={() => setPreviewData({ 
+                            isOpen: true, 
+                            url: selectedLaporan.dokumen_laporan, 
+                            title: `Laporan: ${selectedLaporan.mahasiswa_nama}` 
+                          })}
                           className="flex items-center justify-center gap-2 w-full py-3 bg-white text-green-700 border border-green-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-100 transition-all shadow-sm"
                         >
-                          📄 Lihat Laporan PDF
-                        </a>
+                          📄 Preview Laporan PDF
+                        </button>
                       )}
                    </div>
                  )}
@@ -239,14 +245,16 @@ export default function BerikanNilai() {
                                    <p className="text-sm text-gray-700 leading-relaxed font-medium">{entry.keterangan || 'Tidak ada keterangan.'}</p>
                                 </div>
                                 {entry.file_dokumentasi && (
-                                  <a 
-                                    href={entry.file_dokumentasi} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
+                                  <button 
+                                    onClick={() => setPreviewData({ 
+                                      isOpen: true, 
+                                      url: entry.file_dokumentasi, 
+                                      title: `Dokumentasi: ${entry.jenis_kegiatan}` 
+                                    })}
                                     className="inline-flex items-center gap-2 text-[10px] text-blue-600 font-black uppercase tracking-widest hover:underline"
                                   >
-                                    📁 Lihat Dokumentasi
-                                  </a>
+                                    📁 Preview Dokumentasi
+                                  </button>
                                 )}
                              </div>
                           </div>
@@ -260,6 +268,13 @@ export default function BerikanNilai() {
            </div>
         </div>
       </main>
+
+      <FilePreviewModal 
+        isOpen={previewData.isOpen}
+        fileUrl={previewData.url}
+        title={previewData.title}
+        onClose={() => setPreviewData({ ...previewData, isOpen: false })}
+      />
     </div>
   );
 }
