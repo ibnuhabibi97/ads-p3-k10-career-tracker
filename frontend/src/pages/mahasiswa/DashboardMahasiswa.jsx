@@ -91,7 +91,7 @@ export default function DashboardMahasiswa() {
         <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-black text-gray-800 tracking-tight">Status Pendaftaran</h2>
-            <button onClick={() => navigate('/mahasiswa/daftar')} className="text-xs font-bold text-blue-600 hover:underline">Lihat Detail</button>
+            <button onClick={() => navigate('/mahasiswa/riwayat')} className="text-xs font-bold text-blue-600 hover:underline">Lihat Detail</button>
           </div>
           
           {stats.pendaftaran ? (
