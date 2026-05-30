@@ -28,9 +28,16 @@ export default function DetailLogbook() {
     d.nip.includes(searchTerm)
   );
 
-  const maxDate = new Date().toISOString().split('T')[0];
+  const getLocalISOString = (date) => {
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString();
+  };
+
+  const now = new Date();
+  const maxDate = getLocalISOString(now).split('T')[0];
   const minDate = "2024-01-01";
-  const maxDateTime = new Date().toISOString().substring(0, 16);
+  const maxDateTime = getLocalISOString(now).substring(0, 16);
 
   const fetchData = async () => {
     setIsLoading(true);
