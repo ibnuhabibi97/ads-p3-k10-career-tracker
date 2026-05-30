@@ -24,7 +24,25 @@ export default function VerifikasiPendaftaran() {
     setIsLoading(true);
     try {
       const response = await api.get('/pendaftaran/');
-      setApplicants(response.data);
+      const data = response.data;
+      
+      // Custom Sort Logic
+      // Priority: REVIEW (0), PENDING (1), SELEKSI (2), ACCEPTED (3), REJECTED (4)
+      const priority = {
+        'REVIEW': 0,
+        'PENDING': 1,
+        'SELEKSI': 2,
+        'ACCEPTED': 3,
+        'REJECTED': 4
+      };
+
+      const sortedData = data.sort((a, b) => {
+        const pA = priority[a.status_seleksi] ?? 5;
+        const pB = priority[b.status_seleksi] ?? 5;
+        return pA - pB;
+      });
+
+      setApplicants(sortedData);
     } catch (err) {
       toast.error('Gagal memuat data pendaftaran.');
     } finally {
