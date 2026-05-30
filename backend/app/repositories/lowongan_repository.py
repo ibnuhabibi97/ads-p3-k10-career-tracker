@@ -1,4 +1,5 @@
-from sqlalchemy import or_
+from datetime import date
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session
 from app.models.lowongan import Lowongan
 from app.schemas.lowongan_schema import LowonganCreate, LowonganUpdate
@@ -11,7 +12,13 @@ class LowonganRepository:
         return self.db.query(Lowongan).all()
 
     def get_active(self):
-        return self.db.query(Lowongan).filter(Lowongan.is_active == True).all()
+        """Hanya mengambil lowongan yang aktif dan belum melewati deadline."""
+        return self.db.query(Lowongan).filter(
+            and_(
+                Lowongan.is_active == True,
+                Lowongan.deadline >= date.today()
+            )
+        ).all()
 
     def get_by_id(self, lowongan_id: int):
         return self.db.query(Lowongan).filter(Lowongan.lowongan_id == lowongan_id).first()
@@ -25,13 +32,17 @@ class LowonganRepository:
         return db_lowongan
     
     def search(self, keyword: str):
+        """Pencarian lowongan aktif (mempertimbangkan deadline)."""
         search_pattern = f"%{keyword}%"
         return self.db.query(Lowongan).filter(
-            or_(
-                Lowongan.judul_posisi.ilike(search_pattern),
-                Lowongan.perusahaan.ilike(search_pattern)
-            ),
-            Lowongan.is_active == True # (Opsional) Hanya mencari lowongan yang masih aktif
+            and_(
+                or_(
+                    Lowongan.judul_posisi.ilike(search_pattern),
+                    Lowongan.perusahaan.ilike(search_pattern)
+                ),
+                Lowongan.is_active == True,
+                Lowongan.deadline >= date.today()
+            )
         ).all()
 
     def update(self, lowongan_id: int, lowongan_data: LowonganUpdate):

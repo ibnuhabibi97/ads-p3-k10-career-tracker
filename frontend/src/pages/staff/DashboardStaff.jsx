@@ -34,7 +34,7 @@ export default function DashboardStaff() {
           totalJobs: jobs.length,
           totalApplicants: apps.length,
           pendingVerif: apps.filter(a => !['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(a.status_seleksi)).length,
-          activeJobs: jobs.filter(j => j.is_active).length,
+          activeJobs: jobs.filter(j => j.is_active && new Date(j.deadline) >= new Date().setHours(0,0,0,0)).length,
         });
       } catch (err) {
         console.error('Gagal memuat data dashboard staff:', err);
@@ -124,11 +124,11 @@ export default function DashboardStaff() {
                     <td className="py-5 px-8 text-center font-black text-gray-400">{job.kuota}</td>
                     <td className="py-5 px-8 text-center">
                       <span className={`inline-block px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                        job.is_active 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
+                        new Date(job.deadline) < new Date().setHours(0,0,0,0)
+                          ? 'bg-orange-100 text-orange-700'
+                          : job.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       }`}>
-                        {job.is_active ? 'Active' : 'Archived'}
+                        {new Date(job.deadline) < new Date().setHours(0,0,0,0) ? 'Expired' : job.is_active ? 'Active' : 'Archived'}
                       </span>
                     </td>
                   </tr>

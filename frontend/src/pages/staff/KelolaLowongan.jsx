@@ -37,7 +37,7 @@ export default function KelolaLowongan() {
 
   const toggleStatus = async (id, currentStatus) => {
     try {
-      await api.patch(`/lowongan/${id}`, { is_active: !currentStatus });
+      await api.put(`/lowongan/${id}`, { is_active: !currentStatus });
       toast.success('Status lowongan berhasil diubah');
       fetchLowongans();
     } catch (err) {
@@ -73,9 +73,16 @@ export default function KelolaLowongan() {
                       <h3 className="font-bold text-gray-800 text-lg">{l.judul_posisi}</h3>
                       <p className="text-sm text-indigo-600 font-semibold">{l.perusahaan}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${l.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {l.is_active ? 'AKTIF' : 'NONAKTIF'}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                        new Date(l.deadline) < new Date().setHours(0,0,0,0) 
+                          ? 'bg-orange-100 text-orange-700' 
+                          : l.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {new Date(l.deadline) < new Date().setHours(0,0,0,0) ? 'EXPIRED' : l.is_active ? 'AKTIF' : 'NONAKTIF'}
+                      </span>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Deadline: {new Date(l.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
+                    </div>
                   </div>
                   
                   <p className="text-xs text-gray-500 line-clamp-2">{l.deskripsi_pekerjaan}</p>

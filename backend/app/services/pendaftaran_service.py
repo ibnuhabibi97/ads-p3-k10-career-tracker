@@ -1,8 +1,10 @@
+from datetime import date
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.repositories.pendaftaran_repository import PendaftaranRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
+from app.repositories.lowongan_repository import LowonganRepository
 from app.schemas.pendaftaran_schemas import PendaftaranCreate, PendaftaranUpdate, PendaftaranStatus
 from app.services.email_service import kirim_email_notifikasi
 from app.services.laporan_service import LaporanService
@@ -11,21 +13,31 @@ class PendaftaranService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = PendaftaranRepository(db)
+        self.lowongan_repo = LowonganRepository(db)
         self.notif_repo = NotifikasiRepository(db)
         self.user_repo = UserRepository(db)
         self.laporan_service = LaporanService(db)
 
     async def submit_pendaftaran(self, pendaftaran_data: PendaftaranCreate, mahasiswa_id: int):
-        # Cek apakah mahasiswa sudah mendaftar di lowongan ini
+        # 1. Cek validitas lowongan (aktif & belum deadline)
+        lowongan = self.lowongan_repo.get_by_id(pendaftaran_data.lowongan_id)
+        if not lowongan or not lowongan.is_active or lowongan.deadline < date.today():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Lowongan ini sudah tidak aktif atau telah melewati batas waktu pendaftaran."
+            )
+
+        # 2. Cek apakah mahasiswa sudah mendaftar di lowongan ini
         sudah_daftar = self.repo.cek_pendaftaran_ada(mahasiswa_id, pendaftaran_data.lowongan_id)
         if sudah_daftar:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Anda sudah mendaftar di lowongan ini dan tidak dapat mengubah data."
             )
-        
-        # Susun data untuk disimpan
-        data_dict = pendaftaran_data.model_dump()
+
+        # 3. Susun data untuk disimpan
+...
+
         data_dict["mahasiswa_id"] = mahasiswa_id
         data_dict["status_seleksi"] = PendaftaranStatus.PENDING
         
