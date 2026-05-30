@@ -85,7 +85,7 @@ export default function ChangePassword() {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className={\`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 \${isSubmitting ? 'opacity-70' : ''}\`}
+              className={`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 ${isSubmitting ? 'opacity-70' : ''}`}
             >
               Update Password
             </button>

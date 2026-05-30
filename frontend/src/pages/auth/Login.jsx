@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
-  const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
   
@@ -17,21 +16,26 @@ export default function Login() {
     setError('');
     setIsLoading(true);
     
-    const result = await login(formData.identifier, formData.password);
-    
-    if (result.success) {
-      // Redirect berdasarkan role dari backend (normalisasi ke UPPERCASE)
-      const userRole = result.role.toUpperCase();
-      const dashboardMap = {
-        MAHASISWA: '/mahasiswa/dashboard',
-        DOSEN: '/dosen/dashboard',
-        STAFF: '/staff/dashboard',
-      };
-      navigate(dashboardMap[userRole] || '/');
-    } else {
-      setError(result.message);
+    try {
+      const result = await login(formData.identifier, formData.password);
+      
+      if (result.success) {
+        // Redirect berdasarkan role dari backend (normalisasi ke UPPERCASE)
+        const userRole = result.role.toUpperCase();
+        const dashboardMap = {
+          MAHASISWA: '/mahasiswa/dashboard',
+          DOSEN: '/dosen/dashboard',
+          STAFF: '/staff/dashboard',
+        };
+        navigate(dashboardMap[userRole] || '/');
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan saat mencoba masuk.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -39,29 +43,30 @@ export default function Login() {
       {/* Top Icon & Header */}
       <div className="flex flex-col items-center mb-6 text-center">
         <div className="w-14 h-14 bg-indigo-500 text-white flex items-center justify-center rounded-2xl shadow-lg mb-4">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Sistem Magang Mahasiswa</h1>
-        <p className="text-sm text-gray-500">Kelola data magang mahasiswa</p>
+        <p className="text-sm text-gray-400 font-medium">Kelola data magang mahasiswa</p>
       </div>
 
       {/* Card Form */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-8 max-w-md w-full shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 max-w-md w-full shadow-xl shadow-indigo-900/5">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center" role="alert">
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-2xl text-center flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             {error}
           </div>
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label htmlFor="identifier" className="text-sm font-semibold text-gray-700 block mb-1">Username atau Email</label>
+            <label htmlFor="identifier" className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Username atau Email</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400" aria-hidden="true">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -71,7 +76,7 @@ export default function Login() {
                 type="text"
                 required
                 placeholder="Masukkan username atau email"
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all shadow-sm"
                 value={formData.identifier}
                 onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
               />
@@ -79,9 +84,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="text-sm font-semibold text-gray-700 block mb-1">Password</label>
+            <label htmlFor="password" className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Password</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400" aria-hidden="true">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -91,13 +96,13 @@ export default function Login() {
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="Masukkan password"
-                className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all shadow-sm"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -115,7 +120,7 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <Link to="/forgot-password" title="Klik untuk mereset password Anda" className="text-xs text-indigo-600 hover:underline font-medium">
+            <Link to="/forgot-password" core-title="Klik untuk mereset password Anda" className="text-[10px] text-indigo-600 hover:underline font-black uppercase tracking-widest px-1">
               Lupa password?
             </Link>
           </div>
@@ -123,35 +128,35 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 transition-colors shadow-md shadow-indigo-100 mt-2 flex items-center justify-center ${
-              isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            className={`w-full py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 mt-2 flex items-center justify-center gap-3 ${
+              isLoading ? 'opacity-70 cursor-not-allowed' : 'active:scale-[0.98]'
             }`}
           >
             {isLoading ? (
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : (
-              'Masuk'
+              'Masuk Sekarang'
             )}
           </button>
         </form>
 
-        <div className="mt-6 space-y-3">
-          <p className="text-center text-xs text-gray-500">Belum punya akun?</p>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="mt-8 pt-8 border-t border-gray-50 space-y-4">
+          <p className="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Belum punya akun?</p>
+          <div className="grid grid-cols-2 gap-4">
             <Link
               to="/register/mahasiswa"
-              className="py-2 px-3 border border-indigo-100 bg-indigo-50 text-indigo-600 rounded-xl text-center text-xs font-semibold hover:bg-indigo-100 transition-colors"
+              className="py-3 px-3 border border-blue-100 bg-blue-50 text-blue-600 rounded-xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all shadow-sm"
             >
-              Daftar Mahasiswa
+              Mahasiswa
             </Link>
             <Link
               to="/register/dosen-staff"
-              className="py-2 px-3 border border-gray-100 bg-gray-50 text-gray-600 rounded-xl text-center text-xs font-semibold hover:bg-gray-100 transition-colors"
+              className="py-3 px-3 border border-gray-100 bg-gray-50 text-gray-600 rounded-xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all shadow-sm"
             >
-              Daftar Dosen/Staff
+              Dosen / Staff
             </Link>
           </div>
         </div>

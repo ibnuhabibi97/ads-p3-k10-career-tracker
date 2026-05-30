@@ -229,7 +229,7 @@ export default function ProfilePage() {
                   <button 
                     type="submit" 
                     disabled={isSaving}
-                    className={\`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 \${isSaving ? 'opacity-70 cursor-not-allowed' : ''}\`}
+                    className={`w-full py-4 bg-indigo-600 text-white font-black tracking-widest uppercase text-xs rounded-2xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
                     {isSaving ? 'Menyimpan...' : 'Simpan Perubahan Profil'}
                   </button>
