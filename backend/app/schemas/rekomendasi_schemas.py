@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, Any
+from datetime import date
 from enum import Enum
 
 class SuratRekomendasiStatus(str, Enum):
@@ -13,10 +14,10 @@ class SuratRekomendasiBase(BaseModel):
     dosen_id: int
     dokumen_surat: str
     status_surat: SuratRekomendasiStatus = SuratRekomendasiStatus.PENDING
+    tanggal_pengajuan: date
 
 class SuratRekomendasiCreate(BaseModel):
     dosen_id: int
-    # dokumen_surat akan diisi setelah upload
 
 class SuratRekomendasiUpdate(BaseModel):
     dokumen_surat: Optional[str] = None
@@ -24,5 +25,6 @@ class SuratRekomendasiUpdate(BaseModel):
 
 class SuratRekomendasiResponse(SuratRekomendasiBase):
     surat_id: int
+    dosen: Optional[Any] = None # Untuk nested data dosen jika ada
 
     model_config = ConfigDict(from_attributes=True)

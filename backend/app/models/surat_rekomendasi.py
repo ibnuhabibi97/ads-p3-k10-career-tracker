@@ -17,6 +17,7 @@ class SuratRekomendasi(Base):
         default=SuratRekomendasiStatus.PENDING,
         nullable=False
     )
+    tanggal_pengajuan = Column(Date, default=datetime.date.today, nullable=False)
 
     # Relasi
     mahasiswa = relationship("Mahasiswa", back_populates="surat_rekomendasi")
