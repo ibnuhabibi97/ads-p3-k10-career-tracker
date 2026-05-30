@@ -32,13 +32,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     try {
-      const formData = new FormData();
-      formData.append('username', identifier); 
+      const formData = new URLSearchParams();
+      formData.append('username', identifier);
       formData.append('password', password);
 
-      const response = await api.post('/auth/login', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post('/auth/login', formData);
 
       const { access_token, user: userData } = response.data;
       
