@@ -47,7 +47,6 @@ export default function DashboardDosen() {
     { title: 'Tinjau Progres', desc: 'Lihat logbook mahasiswa', icon: '📊', path: '/dosen/progres' },
     { title: 'Berikan Nilai', desc: 'Input nilai magang', icon: '🏅', path: '/dosen/nilai' },
     { title: 'Surat Rekomendasi', desc: 'Kelola permintaan', icon: '✍️', path: '/dosen/rekomendasi' },
-    { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/dosen/ubah-password' },
   ];
 
   return (
