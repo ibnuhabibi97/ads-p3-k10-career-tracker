@@ -14,6 +14,7 @@ export default function DetailLogbook() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     dosen_id: '',
+    tanggal_log: new Date().toISOString().split('T')[0],
     waktu_mulai: '',
     waktu_selesai: '',
     keterangan: '',
@@ -72,6 +73,7 @@ export default function DetailLogbook() {
       setIsFormOpen(false);
       setFormData({
         dosen_id: '',
+        tanggal_log: new Date().toISOString().split('T')[0],
         waktu_mulai: '',
         waktu_selesai: '',
         keterangan: '',
@@ -99,8 +101,9 @@ export default function DetailLogbook() {
     setEditingId(log.logbook_id);
     setFormData({
         dosen_id: log.dosen_id,
-        waktu_mulai: log.waktu_mulai,
-        waktu_selesai: log.waktu_selesai,
+        tanggal_log: log.tanggal_log.split('T')[0],
+        waktu_mulai: log.waktu_mulai ? log.waktu_mulai.substring(0, 16) : '',
+        waktu_selesai: log.waktu_selesai ? log.waktu_selesai.substring(0, 16) : '',
         keterangan: log.keterangan,
         jenis_kegiatan: log.jenis_kegiatan,
         file_dokumentasi: null
@@ -116,19 +119,48 @@ export default function DetailLogbook() {
             <h2 className="text-2xl font-black text-gray-900">Manajemen Logbook</h2>
             <div className="flex gap-2">
                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-gray-100 rounded-xl text-xs font-bold hover:bg-gray-200">Kembali</button>
-                <button onClick={() => { setIsFormOpen(!isFormOpen); setEditingId(null); }} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700">+ Tambah Log</button>
+                <button onClick={() => { 
+                  setIsFormOpen(!isFormOpen); 
+                  setEditingId(null); 
+                  setFormData({
+                    dosen_id: '',
+                    tanggal_log: new Date().toISOString().split('T')[0],
+                    waktu_mulai: '',
+                    waktu_selesai: '',
+                    keterangan: '',
+                    jenis_kegiatan: '',
+                    file_dokumentasi: null
+                  });
+                }} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700">
+                  {isFormOpen && !editingId ? 'Batal' : '+ Tambah Log'}
+                </button>
             </div>
         </div>
 
         {isFormOpen && (
             <form onSubmit={handleSubmit} className="bg-white p-8 border rounded-3xl shadow-sm space-y-4">
-                <select className="w-full p-3 border rounded-xl text-sm" value={formData.dosen_id} onChange={e => setFormData({...formData, dosen_id: e.target.value})}>
-                    <option value="">Pilih Dosen Pembimbing</option>
-                    {dosens.map(d => <option key={d.user_id} value={d.user_id}>{d.nama}</option>)}
-                </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dosen Pembimbing</label>
+                    <select required className="w-full p-3 border rounded-xl text-sm" value={formData.dosen_id} onChange={e => setFormData({...formData, dosen_id: e.target.value})}>
+                        <option value="">Pilih Dosen Pembimbing</option>
+                        {dosens.map(d => <option key={d.user_id} value={d.user_id}>{d.nama}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tanggal Kegiatan</label>
+                    <input type="date" required className="w-full p-3 border rounded-xl text-sm" value={formData.tanggal_log} onChange={e => setFormData({...formData, tanggal_log: e.target.value})} />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_mulai} onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} />
-                    <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_selesai} onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} />
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Mulai</label>
+                      <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_mulai} onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Selesai</label>
+                      <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_selesai} onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} />
+                    </div>
                 </div>
                 <input type="text" placeholder="Jenis Kegiatan" className="w-full p-3 border rounded-xl text-sm" value={formData.jenis_kegiatan} onChange={e => setFormData({...formData, jenis_kegiatan: e.target.value})} />
                 <textarea placeholder="Keterangan" className="w-full p-3 border rounded-xl text-sm" value={formData.keterangan} onChange={e => setFormData({...formData, keterangan: e.target.value})} />
