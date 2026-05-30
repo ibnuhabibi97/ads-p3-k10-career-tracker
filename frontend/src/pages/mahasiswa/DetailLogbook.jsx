@@ -223,7 +223,19 @@ export default function DetailLogbook() {
                       />
                     </div>
                 </div>
-                <input type="text" placeholder="Jenis Kegiatan" className="w-full p-3 border rounded-xl text-sm" value={formData.jenis_kegiatan} onChange={e => setFormData({...formData, jenis_kegiatan: e.target.value})} />
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Jenis Kegiatan</label>
+                  <select 
+                    required
+                    className="w-full p-3 border rounded-xl text-sm" 
+                    value={formData.jenis_kegiatan} 
+                    onChange={e => setFormData({...formData, jenis_kegiatan: e.target.value})}
+                  >
+                    <option value="">Pilih Jenis Kegiatan</option>
+                    <option value="Berita Acara Kegiatan">Berita Acara Kegiatan</option>
+                    <option value="Berita Acara Bimbingan">Berita Acara Bimbingan</option>
+                  </select>
+                </div>
                 <textarea placeholder="Keterangan" className="w-full p-3 border rounded-xl text-sm" value={formData.keterangan} onChange={e => setFormData({...formData, keterangan: e.target.value})} />
                 <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">Dokumentasi (Opsional)</label>
