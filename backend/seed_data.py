@@ -30,7 +30,7 @@ def seed_data():
                 user = Staff(
                     nama=f"Staff Akademik {i}",
                     username=username,
-                    email=f"staff{i}@career.si.ipb.ac.id",
+                    email=f"ibnuteladan24{i}@gmail.com",
                     password=get_password_hash("password123"),
                     role="staff",
                     nip=nip
@@ -58,7 +58,7 @@ def seed_data():
                 user = Dosen(
                     nama=name,
                     username=username,
-                    email=f"dosen{i}@apps.ipb.ac.id",
+                    email=f"burhanudinibnu562{i}@gmail.com",
                     password=get_password_hash("password123"),
                     role="dosen",
                     nip=nip
@@ -87,7 +87,7 @@ def seed_data():
                 user = Mahasiswa(
                     nama=name,
                     username=username,
-                    email=f"mhs{i}@apps.ipb.ac.id",
+                    email=f"ibnuhsbibi{i}@gmail.com",
                     password=get_password_hash("password123"),
                     role="mahasiswa",
                     nim=nim,
@@ -144,8 +144,8 @@ def seed_data():
                     mahasiswa_id=mhs.user_id,
                     lowongan_id=lowongan.lowongan_id,
                     status_seleksi=statuses[i],
-                    dokumen_cv=f"https://supabase.storage/cv_{mhs.nim}.pdf",
-                    dokumen_surat_rekomendasi=f"https://supabase.storage/rek_{mhs.nim}.pdf",
+                    dokumen_cv=f"https://bieizpbunvujqqpfzfpd.supabase.co/storage/v1/object/public/pendaftaran/cv/sample.pdf",
+                    dokumen_surat_rekomendasi=f"https://bieizpbunvujqqpfzfpd.supabase.co/storage/v1/object/public/pendaftaran/surat_rekomendasi/sample.pdf",
                     tanggal_daftar=datetime.now() - timedelta(days=random.randint(1, 10))
                 )
                 db.add(pendaftaran)
@@ -198,9 +198,8 @@ def seed_data():
                         tanggal_log=log_date,
                         waktu_mulai=datetime.combine(log_date, datetime.min.time()) + timedelta(hours=8),
                         waktu_selesai=datetime.combine(log_date, datetime.min.time()) + timedelta(hours=17),
-                        durasi_kegiatan=timedelta(hours=9),
                         keterangan=f"Melaksanakan tugas harian hari ke-{j} mengenai proyek intern.",
-                        jenis_kegiatan="Teknis",
+                        jenis_kegiatan="Berita Acara Kegiatan",
                         media="Zoom/Offline"
                     )
                     db.add(log)
@@ -216,8 +215,9 @@ def seed_data():
                 rek = SuratRekomendasi(
                     mahasiswa_id=mhs.user_id,
                     dosen_id=mhs.dosen_pembimbing_id,
-                    dokumen_surat=f"https://supabase.storage/request_rek_{mhs.nim}.pdf",
-                    status_surat=random.choice(list(SuratRekomendasiStatus))
+                    dokumen_surat=f"https://bieizpbunvujqqpfzfpd.supabase.co/storage/v1/object/public/surat_rekomendasi/sample.pdf",
+                    status_surat=random.choice(list(SuratRekomendasiStatus)),
+                    tanggal_pengajuan=date.today() - timedelta(days=2)
                 )
                 db.add(rek)
                 rek_count += 1
