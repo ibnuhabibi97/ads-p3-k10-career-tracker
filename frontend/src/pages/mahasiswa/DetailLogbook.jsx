@@ -28,6 +28,10 @@ export default function DetailLogbook() {
     d.nip.includes(searchTerm)
   );
 
+  const maxDate = new Date().toISOString().split('T')[0];
+  const minDate = "2024-01-01";
+  const maxDateTime = new Date().toISOString().substring(0, 16);
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -192,11 +196,12 @@ export default function DetailLogbook() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tanggal Kegiatan</label>
                     <input 
-                      key={editingId ? `date-edit-${editingId}` : 'date-new'}
                       type="date" 
                       required 
+                      min={minDate}
+                      max={maxDate}
                       className="w-full p-3 border rounded-xl text-sm" 
-                      defaultValue={formData.tanggal_log} 
+                      value={formData.tanggal_log} 
                       onChange={e => setFormData({...formData, tanggal_log: e.target.value})} 
                     />
                   </div>
@@ -205,20 +210,20 @@ export default function DetailLogbook() {
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Mulai</label>
                       <input 
-                        key={editingId ? `start-edit-${editingId}` : 'start-new'}
                         type="datetime-local" 
+                        max={maxDateTime}
                         className="w-full p-3 border rounded-xl text-sm" 
-                        defaultValue={formData.waktu_mulai} 
+                        value={formData.waktu_mulai} 
                         onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} 
                       />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Selesai</label>
                       <input 
-                        key={editingId ? `end-edit-${editingId}` : 'end-new'}
                         type="datetime-local" 
+                        max={maxDateTime}
                         className="w-full p-3 border rounded-xl text-sm" 
-                        defaultValue={formData.waktu_selesai} 
+                        value={formData.waktu_selesai} 
                         onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} 
                       />
                     </div>
