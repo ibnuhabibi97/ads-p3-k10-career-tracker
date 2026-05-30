@@ -56,7 +56,7 @@ export default function DashboardMahasiswa() {
     { title: 'Daftar Magang', desc: 'Kirim lamaran', icon: '🚀', path: '/mahasiswa/daftar' },
     { title: 'Logbook Harian', desc: 'Catat aktivitas', icon: '📖', path: '/mahasiswa/laporan' },
     { title: 'Laporan Magang', desc: 'Upload laporan', icon: '📤', path: '/mahasiswa/laporan' },
-    { title: 'Hubungi Dosen', desc: 'Minta rekomendasi', icon: '💬', path: '/mahasiswa/hubungi-dosen' },
+    { title: 'Surat Rekomendasi', desc: 'Minta rekomendasi', icon: '📄', path: '/mahasiswa/hubungi-dosen' },
   ];
 
   return (
