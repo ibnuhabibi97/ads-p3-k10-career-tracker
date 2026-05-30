@@ -1,13 +1,16 @@
 {
   "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "/api/index.py"
+  "experimentalServices": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite",
+      "buildCommand": "pnpm run build",
+      "outputDirectory": "dist",
+      "routePrefix": "/"
     },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/dist/$1"
+    "backend": {
+      "root": "backend",
+      "routePrefix": "/api"
     }
-  ]
+  }
 }
