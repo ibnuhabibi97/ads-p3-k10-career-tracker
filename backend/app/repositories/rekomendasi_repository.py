@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.surat_rekomendasi import SuratRekomendasi
 
 class SuratRekomendasiRepository:
@@ -13,13 +13,22 @@ class SuratRekomendasiRepository:
         return db_surat
 
     def get_by_id(self, surat_id: int):
-        return self.db.query(SuratRekomendasi).filter(SuratRekomendasi.surat_id == surat_id).first()
+        return self.db.query(SuratRekomendasi).options(
+            joinedload(SuratRekomendasi.mahasiswa),
+            joinedload(SuratRekomendasi.dosen)
+        ).filter(SuratRekomendasi.surat_id == surat_id).first()
 
     def get_by_mahasiswa(self, mahasiswa_id: int):
-        return self.db.query(SuratRekomendasi).filter(SuratRekomendasi.mahasiswa_id == mahasiswa_id).all()
+        return self.db.query(SuratRekomendasi).options(
+            joinedload(SuratRekomendasi.mahasiswa),
+            joinedload(SuratRekomendasi.dosen)
+        ).filter(SuratRekomendasi.mahasiswa_id == mahasiswa_id).all()
 
     def get_by_dosen(self, dosen_id: int):
-        return self.db.query(SuratRekomendasi).filter(SuratRekomendasi.dosen_id == dosen_id).all()
+        return self.db.query(SuratRekomendasi).options(
+            joinedload(SuratRekomendasi.mahasiswa),
+            joinedload(SuratRekomendasi.dosen)
+        ).filter(SuratRekomendasi.dosen_id == dosen_id).all()
 
     def update(self, surat_id: int, update_data: dict):
         db_surat = self.get_by_id(surat_id)

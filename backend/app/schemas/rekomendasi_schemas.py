@@ -25,6 +25,7 @@ class SuratRekomendasiUpdate(BaseModel):
 
 class SuratRekomendasiResponse(SuratRekomendasiBase):
     surat_id: int
+    mahasiswa: Optional[Any] = None
     dosen: Optional[Any] = None # Untuk nested data dosen jika ada
 
     model_config = ConfigDict(from_attributes=True)

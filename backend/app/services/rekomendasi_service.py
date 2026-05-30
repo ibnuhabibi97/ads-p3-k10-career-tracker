@@ -117,7 +117,10 @@ class SuratRekomendasiService:
         return self.repo.get_by_dosen(dosen_id)
 
     def ambil_detail_surat(self, surat_id: int, user_id: int):
-        surat = self.repo.get_id(surat_id)
-        if not surat or (surat.mahasiswa_id != user_id and surat.dosen_id != user_id):
+        surat = self.repo.get_by_id(surat_id)
+        if not surat:
+            raise HTTPException(status_code=404, detail="Data surat tidak ditemukan")
+            
+        if (surat.mahasiswa_id != user_id and surat.dosen_id != user_id):
              raise HTTPException(status_code=403, detail="Akses ditolak.")
         return surat
