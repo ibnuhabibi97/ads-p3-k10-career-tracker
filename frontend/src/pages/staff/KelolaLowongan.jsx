@@ -82,6 +82,12 @@ export default function KelolaLowongan() {
                   
                   <div className="flex gap-2 pt-2">
                     <button 
+                      onClick={() => navigate(`/staff/edit-lowongan/${l.lowongan_id}`)}
+                      className="flex-1 py-2 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-colors"
+                    >
+                      Edit Detail
+                    </button>
+                    <button 
                       onClick={() => toggleStatus(l.lowongan_id, l.is_active)}
                       className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
                     >

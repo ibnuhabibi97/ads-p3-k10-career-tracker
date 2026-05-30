@@ -139,6 +139,7 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <Suspense fallback={<DashboardSkeleton />}><DashboardStaff /></Suspense> },
       { path: 'kelola-lowongan', element: <Suspense fallback={<DashboardSkeleton />}><KelolaLowongan /></Suspense> },
       { path: 'tambah-lowongan', element: <Suspense fallback={<DashboardSkeleton />}><TambahLowongan /></Suspense> },
+      { path: 'edit-lowongan/:lowonganId', element: <Suspense fallback={<DashboardSkeleton />}><TambahLowongan /></Suspense> },
       { path: 'verifikasi', element: <Suspense fallback={<DashboardSkeleton />}><VerifikasiPendaftaran /></Suspense> },
       { path: 'ubah-password', element: <Suspense fallback={<DashboardSkeleton />}><ChangePassword /></Suspense> },
       { path: 'profil', element: <Suspense fallback={<DashboardSkeleton />}><ProfilePage /></Suspense> },
