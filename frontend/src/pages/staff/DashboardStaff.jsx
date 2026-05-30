@@ -49,7 +49,6 @@ export default function DashboardStaff() {
     { title: 'Kelola Lowongan', desc: 'CRUD data lowongan', icon: '⚙️', path: '/staff/kelola-lowongan' },
     { title: 'Tambah Lowongan', desc: 'Buat lowongan baru', icon: '➕', path: '/staff/tambah-lowongan' },
     { title: 'Verifikasi Pelamar', desc: 'Review lamaran', icon: '🔍', path: '/staff/verifikasi' },
-    { title: 'Ubah Password', desc: 'Keamanan akun', icon: '🔐', path: '/staff/ubah-password' },
   ];
 
   if (isLoading) return <DashboardSkeleton />;
