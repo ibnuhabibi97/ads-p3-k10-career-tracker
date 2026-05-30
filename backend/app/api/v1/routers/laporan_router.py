@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.db.database import get_db
-from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanResponse
+from app.schemas.laporan_schema import LaporanCreate, LaporanUpdate, LaporanResponse, LaporanStatus
 from app.schemas.laporan_dosen_schema import LaporanPenilaianUpdate, LaporanRevisiDosenUpdate
 from app.services.laporan_service import LaporanService
 from app.api.dependencies import get_laporan_service
@@ -74,14 +74,31 @@ def get_laporan_mahasiswa(mahasiswa_id: int, service: LaporanService = Depends(g
     return service.ambil_laporan_mahasiswa(mahasiswa_id)
 
 @router.put("/{laporan_id}", response_model=LaporanResponse)
-def update_laporan(
+async def update_laporan(
     laporan_id: int, 
-    laporan: LaporanUpdate, 
+    status: Optional[LaporanStatus] = Form(None),
+    file_laporan: Optional[UploadFile] = File(None),
     current_user: dict = Depends(hanya_mahasiswa),
     service: LaporanService = Depends(get_laporan_service)
 ):
-    """Update laporan oleh mahasiswa (hanya dokumen)"""
-    return service.ubah_laporan(laporan_id, laporan, current_user["user_id"])
+    """Update laporan oleh mahasiswa (dengan upload dokumen opsional)"""
+    update_data = {}
+    
+    if file_laporan:
+        contents = await file_laporan.read()
+        public_url = storage_client.upload(
+            file_data=contents, 
+            file_name=file_laporan.filename, 
+            content_type=file_laporan.content_type,
+            folder="laporan"
+        )
+        update_data["dokumen_laporan"] = public_url
+        
+    if status:
+        update_data["status"] = status
+        
+    laporan_update = LaporanUpdate(**update_data)
+    return service.ubah_laporan(laporan_id, laporan_update, current_user["user_id"])
 
 @router.delete("/{laporan_id}")
 def delete_laporan(
