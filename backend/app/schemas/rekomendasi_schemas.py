@@ -1,7 +1,8 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Any
+from typing import Optional, List
 from datetime import date
 from enum import Enum
+from app.schemas.user_schema import MahasiswaResponse, DosenResponse
 
 class SuratRekomendasiStatus(str, Enum):
     PENDING = "PENDING"
@@ -25,7 +26,7 @@ class SuratRekomendasiUpdate(BaseModel):
 
 class SuratRekomendasiResponse(SuratRekomendasiBase):
     surat_id: int
-    mahasiswa: Optional[Any] = None
-    dosen: Optional[Any] = None # Untuk nested data dosen jika ada
+    mahasiswa: Optional[MahasiswaResponse] = None
+    dosen: Optional[DosenResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
