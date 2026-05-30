@@ -44,8 +44,7 @@ export default function DashboardDosen() {
   }, [user.user_id]);
 
   const mainMenus = [
-    { title: 'Tinjau Progres', desc: 'Lihat logbook mahasiswa', icon: '📊', path: '/dosen/progres' },
-    { title: 'Berikan Nilai', desc: 'Input nilai magang', icon: '🏅', path: '/dosen/nilai' },
+    { title: 'Berikan Nilai', desc: 'Tinjau laporan & input nilai', icon: '🏅', path: '/dosen/nilai' },
     { title: 'Surat Rekomendasi', desc: 'Kelola permintaan', icon: '✍️', path: '/dosen/rekomendasi' },
   ];
 

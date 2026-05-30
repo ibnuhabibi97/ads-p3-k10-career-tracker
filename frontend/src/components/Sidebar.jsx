@@ -15,7 +15,6 @@ const MENU_ITEMS = {
     { path: '/dosen/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/dosen/nilai', label: 'Input Nilai', icon: '⭐' },
     { path: '/dosen/rekomendasi', label: 'Surat Rekomendasi', icon: '✉️' },
-    { path: '/dosen/progres', label: 'Pantau Progres', icon: '📈' },
   ],
   STAFF: [
     { path: '/staff/dashboard', label: 'Dashboard', icon: '📊' },
