@@ -39,10 +39,10 @@ export default function VerifikasiPendaftaran() {
   const handleVerify = async (id, newStatus) => {
     const loadingToast = toast.loading('Memperbarui status...');
     try {
-      await api.patch(\`/pendaftaran/\${id}/status\`, {
+      await api.patch(`/pendaftaran/${id}/status`, {
         status_seleksi: newStatus
       });
-      toast.success(\`Pendaftaran berhasil di-\${newStatus.toLowerCase()}\`, { id: loadingToast });
+      toast.success(`Pendaftaran berhasil di-${newStatus.toLowerCase()}`, { id: loadingToast });
       fetchApplicants();
     } catch (err) {
       toast.error("Gagal mengubah status pendaftaran.", { id: loadingToast });
@@ -79,7 +79,7 @@ export default function VerifikasiPendaftaran() {
             </div>
             <div className="flex-1 bg-gray-100 relative">
               <iframe 
-                src={\`\${previewFile}#toolbar=0\`} 
+                src={`${previewFile}#toolbar=0`} 
                 className="w-full h-full border-none"
                 title="Document Preview"
               />
@@ -175,7 +175,7 @@ export default function VerifikasiPendaftaran() {
               </div>
 
               <div className="shrink-0">
-                <span className={\`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border \${
+                <span className={`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border ${
                   app.status_seleksi === 'ACCEPTED' 
                     ? 'bg-green-100 text-green-700 border-green-200'
                     : app.status_seleksi === 'REJECTED' 
@@ -185,7 +185,7 @@ export default function VerifikasiPendaftaran() {
                     : app.status_seleksi === 'REVIEW'
                     ? 'bg-blue-100 text-blue-700 border-blue-200'
                     : 'bg-amber-100 text-amber-700 border-amber-200'
-                }\`}>
+                }`}>
                   {STATUS_LABELS[app.status_seleksi] || app.status_seleksi}
                 </span>
               </div>
