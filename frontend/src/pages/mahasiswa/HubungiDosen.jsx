@@ -51,7 +51,7 @@ export default function HubungiDosen() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <a 
-                      href={\`mailto:\${pembimbing.email}\`}
+                      href={`mailto:${pembimbing.email}`}
                       className="p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-indigo-50 hover:border-indigo-100 transition-all group"
                     >
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-indigo-400">Alamat Email</p>
@@ -65,7 +65,7 @@ export default function HubungiDosen() {
 
                   <div className="pt-4 flex flex-col md:flex-row gap-4">
                     <a 
-                      href={\`https://wa.me/\`} 
+                      href={`https://wa.me/`} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="px-8 py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all text-center shadow-lg shadow-green-100"
