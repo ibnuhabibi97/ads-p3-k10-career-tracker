@@ -33,7 +33,7 @@ export default function DashboardStaff() {
         setStats({
           totalJobs: jobs.length,
           totalApplicants: apps.length,
-          pendingVerif: apps.filter(a => a.status_seleksi === 'PENDING').length,
+          pendingVerif: apps.filter(a => !['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(a.status_seleksi)).length,
           activeJobs: jobs.filter(j => j.is_active).length,
         });
       } catch (err) {
@@ -72,9 +72,9 @@ export default function DashboardStaff() {
           <div key={idx} className="bg-white border border-gray-100 rounded-3xl p-6 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
             <div className="space-y-1">
               <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none block mb-1">{stat.label}</span>
-              <span className={`text-3xl font-black text-${stat.color}-600`}>{stat.count}</span>
+              <span className="text-3xl font-black text-gray-800">{stat.count}</span>
             </div>
-            <div className={`w-12 h-12 bg-${stat.color}-50 rounded-2xl flex items-center justify-center text-2xl`}>
+            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-2xl">
               {stat.icon}
             </div>
           </div>

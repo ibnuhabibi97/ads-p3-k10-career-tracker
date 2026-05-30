@@ -50,7 +50,7 @@ export default function VerifikasiPendaftaran() {
         </div>
         <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Antrean</span>
-           <span className="text-lg font-black text-indigo-600">{applicants.filter(a => a.status_seleksi === 'PENDING').length}</span>
+           <span className="text-lg font-black text-indigo-600">{applicants.filter(a => !['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(a.status_seleksi)).length}</span>
         </div>
       </div>
 
@@ -140,17 +140,35 @@ export default function VerifikasiPendaftaran() {
                   </div>
                 </div>
 
-                {app.status_seleksi === 'PENDING' && (
-                  <div className="flex gap-3 pt-2">
-                    <button 
-                      onClick={() => handleVerify(app.pendaftaran_id, 'ACCEPTED')}
-                      className="flex-1 md:flex-none px-8 py-3 bg-green-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-green-700 shadow-lg shadow-green-200 transition-all active:scale-95"
-                    >
-                      Terima
-                    </button>
+                {!['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(app.status_seleksi) && (
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    {(app.status_seleksi === 'PENDING' || app.status_seleksi === 'Pending Review') && (
+                      <button 
+                        onClick={() => handleVerify(app.pendaftaran_id, 'REVIEW')}
+                        className="px-6 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                      >
+                        Mulai Review
+                      </button>
+                    )}
+                    {(app.status_seleksi === 'REVIEW' || app.status_seleksi === 'Under Review') && (
+                      <button 
+                        onClick={() => handleVerify(app.pendaftaran_id, 'SELEKSI')}
+                        className="px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95"
+                      >
+                        Pindah ke Seleksi
+                      </button>
+                    )}
+                    {(app.status_seleksi === 'SELEKSI' || app.status_seleksi === 'Tahap Seleksi') && (
+                      <button 
+                        onClick={() => handleVerify(app.pendaftaran_id, 'ACCEPTED')}
+                        className="px-6 py-2.5 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all active:scale-95"
+                      >
+                        Terima Pelamar
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleVerify(app.pendaftaran_id, 'REJECTED')}
-                      className="flex-1 md:flex-none px-8 py-3 bg-red-50 text-red-600 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                      className="px-6 py-2.5 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95"
                     >
                       Tolak
                     </button>
@@ -160,10 +178,14 @@ export default function VerifikasiPendaftaran() {
 
               <div className="shrink-0">
                 <span className={`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border ${
-                  app.status_seleksi === 'ACCEPTED' 
+                  ['ACCEPTED', 'Accepted'].includes(app.status_seleksi) 
                     ? 'bg-green-100 text-green-700 border-green-200'
-                    : app.status_seleksi === 'REJECTED' 
+                    : ['REJECTED', 'Rejected'].includes(app.status_seleksi) 
                     ? 'bg-red-100 text-red-700 border-red-200'
+                    : ['SELEKSI', 'Tahap Seleksi'].includes(app.status_seleksi)
+                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                    : ['REVIEW', 'Under Review'].includes(app.status_seleksi)
+                    ? 'bg-blue-100 text-blue-700 border-blue-200'
                     : 'bg-amber-100 text-amber-700 border-amber-200'
                 }`}>
                   {app.status_seleksi}
