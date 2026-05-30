@@ -140,37 +140,28 @@ export default function VerifikasiPendaftaran() {
                   </div>
                 </div>
 
-                {!['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(app.status_seleksi) && (
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    {(app.status_seleksi === 'PENDING' || app.status_seleksi === 'Pending Review') && (
-                      <button 
-                        onClick={() => handleVerify(app.pendaftaran_id, 'REVIEW')}
-                        className="px-6 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                {app.status_seleksi !== 'Accepted' && app.status_seleksi !== 'Rejected' && (
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <div className="flex-1 md:flex-none min-w-[200px]">
+                      <select 
+                        className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        value={app.status_seleksi}
+                        onChange={(e) => {
+                          if (e.target.value) handleVerify(app.pendaftaran_id, e.target.value);
+                        }}
                       >
-                        Mulai Review
-                      </button>
-                    )}
-                    {(app.status_seleksi === 'REVIEW' || app.status_seleksi === 'Under Review') && (
-                      <button 
-                        onClick={() => handleVerify(app.pendaftaran_id, 'SELEKSI')}
-                        className="px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95"
-                      >
-                        Pindah ke Seleksi
-                      </button>
-                    )}
-                    {(app.status_seleksi === 'SELEKSI' || app.status_seleksi === 'Tahap Seleksi') && (
-                      <button 
-                        onClick={() => handleVerify(app.pendaftaran_id, 'ACCEPTED')}
-                        className="px-6 py-2.5 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all active:scale-95"
-                      >
-                        Terima Pelamar
-                      </button>
-                    )}
+                        <option value="">-- Ubah Status --</option>
+                        <option value="REVIEW">Under Review</option>
+                        <option value="SELEKSI">Tahap Seleksi</option>
+                        <option value="ACCEPTED">Accepted</option>
+                        <option value="REJECTED">Rejected</option>
+                      </select>
+                    </div>
                     <button 
                       onClick={() => handleVerify(app.pendaftaran_id, 'REJECTED')}
-                      className="px-6 py-2.5 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                      className="px-6 py-2.5 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 hover:text-white transition-all active:scale-95 border border-red-100"
                     >
-                      Tolak
+                      Tolak Cepat
                     </button>
                   </div>
                 )}
