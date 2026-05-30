@@ -12,6 +12,14 @@ export default function VerifikasiPendaftaran() {
   const [isLoading, setIsLoading] = useState(true);
   const [previewFile, setPreviewFile] = useState(null);
 
+  const STATUS_LABELS = {
+    'PENDING': 'Pending Review',
+    'REVIEW': 'Under Review',
+    'SELEKSI': 'Tahap Seleksi',
+    'ACCEPTED': 'Accepted',
+    'REJECTED': 'Rejected'
+  };
+
   const fetchApplicants = async () => {
     setIsLoading(true);
     try {
@@ -31,10 +39,10 @@ export default function VerifikasiPendaftaran() {
   const handleVerify = async (id, newStatus) => {
     const loadingToast = toast.loading('Memperbarui status...');
     try {
-      await api.patch(`/pendaftaran/${id}/status`, {
+      await api.patch(\`/pendaftaran/\${id}/status\`, {
         status_seleksi: newStatus
       });
-      toast.success(`Pendaftaran berhasil di-${newStatus.toLowerCase()}`, { id: loadingToast });
+      toast.success(\`Pendaftaran berhasil di-\${newStatus.toLowerCase()}\`, { id: loadingToast });
       fetchApplicants();
     } catch (err) {
       toast.error("Gagal mengubah status pendaftaran.", { id: loadingToast });
@@ -50,7 +58,7 @@ export default function VerifikasiPendaftaran() {
         </div>
         <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Antrean</span>
-           <span className="text-lg font-black text-indigo-600">{applicants.filter(a => !['ACCEPTED', 'REJECTED', 'Accepted', 'Rejected'].includes(a.status_seleksi)).length}</span>
+           <span className="text-lg font-black text-indigo-600">{applicants.filter(a => !['ACCEPTED', 'REJECTED'].includes(a.status_seleksi)).length}</span>
         </div>
       </div>
 
@@ -71,7 +79,7 @@ export default function VerifikasiPendaftaran() {
             </div>
             <div className="flex-1 bg-gray-100 relative">
               <iframe 
-                src={`${previewFile}#toolbar=0`} 
+                src={\`\${previewFile}#toolbar=0\`} 
                 className="w-full h-full border-none"
                 title="Document Preview"
               />
@@ -96,7 +104,7 @@ export default function VerifikasiPendaftaran() {
         ) : applicants.length > 0 ? (
           applicants.map((app) => (
             <div key={app.pendaftaran_id} className="bg-white rounded-[2rem] border border-gray-100 p-8 flex flex-col md:flex-row justify-between items-start gap-8 hover:shadow-xl hover:shadow-indigo-900/5 transition-all group relative overflow-hidden">
-              {app.status_seleksi === 'PENDING' && (
+              {!['ACCEPTED', 'REJECTED'].includes(app.status_seleksi) && (
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
               )}
               
@@ -140,7 +148,7 @@ export default function VerifikasiPendaftaran() {
                   </div>
                 </div>
 
-                {app.status_seleksi !== 'Accepted' && app.status_seleksi !== 'Rejected' && (
+                {app.status_seleksi !== 'ACCEPTED' && app.status_seleksi !== 'REJECTED' && (
                   <div className="flex flex-wrap items-center gap-3 pt-2">
                     <div className="flex-1 md:flex-none min-w-[200px]">
                       <select 
@@ -151,10 +159,9 @@ export default function VerifikasiPendaftaran() {
                         }}
                       >
                         <option value="">-- Ubah Status --</option>
-                        <option value="REVIEW">Under Review</option>
-                        <option value="SELEKSI">Tahap Seleksi</option>
-                        <option value="ACCEPTED">Accepted</option>
-                        <option value="REJECTED">Rejected</option>
+                        {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
                       </select>
                     </div>
                     <button 
@@ -168,18 +175,18 @@ export default function VerifikasiPendaftaran() {
               </div>
 
               <div className="shrink-0">
-                <span className={`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border ${
-                  ['ACCEPTED', 'Accepted'].includes(app.status_seleksi) 
+                <span className={\`px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.15em] uppercase border \${
+                  app.status_seleksi === 'ACCEPTED' 
                     ? 'bg-green-100 text-green-700 border-green-200'
-                    : ['REJECTED', 'Rejected'].includes(app.status_seleksi) 
+                    : app.status_seleksi === 'REJECTED' 
                     ? 'bg-red-100 text-red-700 border-red-200'
-                    : ['SELEKSI', 'Tahap Seleksi'].includes(app.status_seleksi)
+                    : app.status_seleksi === 'SELEKSI'
                     ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
-                    : ['REVIEW', 'Under Review'].includes(app.status_seleksi)
+                    : app.status_seleksi === 'REVIEW'
                     ? 'bg-blue-100 text-blue-700 border-blue-200'
                     : 'bg-amber-100 text-amber-700 border-amber-200'
-                }`}>
-                  {app.status_seleksi}
+                }\`}>
+                  {STATUS_LABELS[app.status_seleksi] || app.status_seleksi}
                 </span>
               </div>
             </div>
