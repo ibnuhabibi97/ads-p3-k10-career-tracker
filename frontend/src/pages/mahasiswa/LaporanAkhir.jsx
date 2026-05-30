@@ -42,20 +42,14 @@ export default function LaporanAkhir() {
     const loadingToast = toast.loading('Memfinalisasi laporan...');
 
     try {
-      let docUrl = currentLaporan.dokumen_laporan;
-
+      const formData = new FormData();
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        const uploadRes = await api.post('/laporan/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        docUrl = uploadRes.data.dokumen_laporan;
+        formData.append('file_laporan', selectedFile);
       }
+      formData.append('status', 'PENDING');
 
-      await api.put(`/laporan/${currentLaporan.laporan_id}`, {
-        dokumen_laporan: docUrl,
-        status: 'PENDING'
+      await api.put(`/laporan/${currentLaporan.laporan_id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       toast.success("Laporan berhasil difinalisasi!", { id: loadingToast });
