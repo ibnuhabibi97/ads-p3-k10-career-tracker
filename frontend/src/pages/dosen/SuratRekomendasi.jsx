@@ -40,11 +40,11 @@ export default function SuratRekomendasi() {
     }
 
     try {
-      const response = await api.patch(\`/surat-rekomendasi/\${id}/proses\`, formData, {
+      const response = await api.patch(`/surat-rekomendasi/${id}/proses`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (response.status === 200) {
-        alert(\`Surat berhasil di-\${status.toLowerCase()}\`);
+        alert(`Surat berhasil di-${status.toLowerCase()}`);
         fetchRequests();
       }
     } catch (err) {
@@ -79,11 +79,11 @@ export default function SuratRekomendasi() {
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-3">
                       <h3 className="font-bold text-gray-800 text-base">{req.mahasiswa_nama}</h3>
-                      <span className={\`px-2 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase \${
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase ${
                         req.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
                         req.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
                         'bg-amber-100 text-amber-700'
-                      }\`}>
+                      }`}>
                         {req.status}
                       </span>
                     </div>

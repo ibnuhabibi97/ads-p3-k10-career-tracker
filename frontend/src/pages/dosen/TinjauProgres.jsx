@@ -14,7 +14,7 @@ export default function TinjauProgres() {
   useEffect(() => {
     const fetchMahasiswa = async () => {
       try {
-        const response = await api.get(\`/laporan/dosen/\${user.user_id}\`);
+        const response = await api.get(`/laporan/dosen/${user.user_id}`);
         setMahasiswaList(response.data);
         if (response.data.length > 0) {
           handleSelectMahasiswa(response.data[0]);
@@ -33,7 +33,7 @@ export default function TinjauProgres() {
     setSelectedLaporan(laporan);
     setIsFetchingLogbook(true);
     try {
-      const response = await api.get(\`/logbook/laporan/\${laporan.laporan_id}\`);
+      const response = await api.get(`/logbook/laporan/${laporan.laporan_id}`);
       setLogbooks(response.data);
     } catch (err) {
       console.error('Gagal memuat logbook:', err);
