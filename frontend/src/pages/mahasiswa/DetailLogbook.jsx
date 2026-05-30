@@ -207,6 +207,7 @@ export default function DetailLogbook() {
                       required 
                       min={minDate}
                       max={maxDate}
+                      lang="id-ID"
                       className="w-full p-3 border rounded-xl text-sm" 
                       value={formData.tanggal_log} 
                       onChange={e => setFormData({...formData, tanggal_log: e.target.value})} 
@@ -219,6 +220,7 @@ export default function DetailLogbook() {
                       <input 
                         type="datetime-local" 
                         max={maxDateTime}
+                        lang="id-ID"
                         className="w-full p-3 border rounded-xl text-sm" 
                         value={formData.waktu_mulai} 
                         onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} 
@@ -229,12 +231,14 @@ export default function DetailLogbook() {
                       <input 
                         type="datetime-local" 
                         max={maxDateTime}
+                        lang="id-ID"
                         className="w-full p-3 border rounded-xl text-sm" 
                         value={formData.waktu_selesai} 
                         onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} 
                       />
                     </div>
                 </div>
+                <p className="text-[9px] text-gray-400 italic mt-1">* Tampilan format input mengikuti pengaturan bahasa browser Anda.</p>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Jenis Kegiatan</label>
                   <select 
