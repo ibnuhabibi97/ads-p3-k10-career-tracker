@@ -191,17 +191,36 @@ export default function DetailLogbook() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tanggal Kegiatan</label>
-                    <input type="date" required className="w-full p-3 border rounded-xl text-sm" value={formData.tanggal_log} onChange={e => setFormData({...formData, tanggal_log: e.target.value})} />
+                    <input 
+                      key={editingId ? `date-edit-${editingId}` : 'date-new'}
+                      type="date" 
+                      required 
+                      className="w-full p-3 border rounded-xl text-sm" 
+                      defaultValue={formData.tanggal_log} 
+                      onChange={e => setFormData({...formData, tanggal_log: e.target.value})} 
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Mulai</label>
-                      <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_mulai} onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} />
+                      <input 
+                        key={editingId ? `start-edit-${editingId}` : 'start-new'}
+                        type="datetime-local" 
+                        className="w-full p-3 border rounded-xl text-sm" 
+                        defaultValue={formData.waktu_mulai} 
+                        onChange={e => setFormData({...formData, waktu_mulai: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Selesai</label>
-                      <input type="datetime-local" className="w-full p-3 border rounded-xl text-sm" value={formData.waktu_selesai} onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} />
+                      <input 
+                        key={editingId ? `end-edit-${editingId}` : 'end-new'}
+                        type="datetime-local" 
+                        className="w-full p-3 border rounded-xl text-sm" 
+                        defaultValue={formData.waktu_selesai} 
+                        onChange={e => setFormData({...formData, waktu_selesai: e.target.value})} 
+                      />
                     </div>
                 </div>
                 <input type="text" placeholder="Jenis Kegiatan" className="w-full p-3 border rounded-xl text-sm" value={formData.jenis_kegiatan} onChange={e => setFormData({...formData, jenis_kegiatan: e.target.value})} />
