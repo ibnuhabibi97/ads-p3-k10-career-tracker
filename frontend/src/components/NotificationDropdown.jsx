@@ -119,7 +119,7 @@ export default function NotificationDropdown() {
                     </p>
                     {n.created_at && (
                       <p className="text-[10px] text-gray-400 font-medium">
-                        {new Date(n.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })} • {new Date(n.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        {new Date(n.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })} • {new Date(n.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     )}
                   </div>

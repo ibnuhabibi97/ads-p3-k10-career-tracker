@@ -270,7 +270,7 @@ export default function DetailLogbook() {
                             {log.jenis_kegiatan}
                           </span>
                           <p className="font-bold text-gray-800 text-sm">
-                            {new Date(log.tanggal_log).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            {new Date(log.tanggal_log).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                           </p>
                         </div>
                         <p className="text-xs text-gray-500 font-medium">

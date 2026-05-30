@@ -94,7 +94,7 @@ export default function LaporanAkhir() {
             <div className="space-y-4">
                 {logbooks.slice(0, 5).map(log => (
                     <div key={log.logbook_id} className="p-4 bg-gray-50 rounded-2xl text-sm font-bold text-gray-700 border border-gray-100">
-                        {new Date(log.tanggal_log).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {log.keterangan || 'Log kosong'}
+                        {new Date(log.tanggal_log).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} - {log.keterangan || 'Log kosong'}
                     </div>
                 ))}
             </div>

@@ -58,7 +58,7 @@ export default function RiwayatPendaftaran() {
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tanggal Daftar</p>
                     <p className="text-sm font-bold text-gray-700">
-                      {new Date(app.tanggal_daftar).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      {new Date(app.tanggal_daftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
                   <div className="space-y-1">
