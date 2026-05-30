@@ -20,6 +20,7 @@ export default function DashboardStaff() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        // Fetch lowongan and pendaftaran in parallel
         const [lowonganRes, pendaftaranRes] = await Promise.all([
           api.get('/lowongan/'),
           api.get('/pendaftaran/')
@@ -28,7 +29,7 @@ export default function DashboardStaff() {
         const jobs = lowonganRes.data;
         const apps = pendaftaranRes.data;
 
-        setLowonganList(jobs.slice(0, 5)); // Show latest 5
+        setLowonganList(jobs.slice(0, 5)); 
 
         setStats({
           totalJobs: jobs.length,
@@ -43,7 +44,7 @@ export default function DashboardStaff() {
       }
     };
     fetchData();
-  }, []);
+  }, [user?.user_id]);
 
   const mainMenus = [
     { title: 'Kelola Lowongan', desc: 'CRUD data lowongan', icon: '⚙️', path: '/staff/kelola-lowongan' },

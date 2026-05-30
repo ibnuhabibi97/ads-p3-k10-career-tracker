@@ -60,7 +60,7 @@ export default function TambahLowongan() {
 
       if (isEditMode) {
         const id = lowonganId || location.state?.lowongan?.lowongan_id;
-        await api.patch(`/lowongan/${id}`, data);
+        await api.put(`/lowongan/${id}`, data);
         toast.success('Lowongan berhasil diperbarui!', { id: loadingToast });
       } else {
         await api.post('/lowongan/', data);

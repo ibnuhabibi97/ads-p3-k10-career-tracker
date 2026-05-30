@@ -34,10 +34,9 @@ class PendaftaranService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Anda sudah mendaftar di lowongan ini dan tidak dapat mengubah data."
             )
-
+        
         # 3. Susun data untuk disimpan
-...
-
+        data_dict = pendaftaran_data.model_dump()
         data_dict["mahasiswa_id"] = mahasiswa_id
         data_dict["status_seleksi"] = PendaftaranStatus.PENDING
         

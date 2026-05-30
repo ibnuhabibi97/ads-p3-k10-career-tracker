@@ -18,25 +18,21 @@ export default function DashboardMahasiswa() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        // Ambil data pendaftaran terbaru
-        const resPendaftaran = await api.get('/pendaftaran/saya');
+        // Jalankan semua request secara paralel untuk kecepatan maksimal
+        const [resPendaftaran, resLogbook, resLaporan] = await Promise.all([
+          api.get('/pendaftaran/saya'),
+          api.get(`/logbook/mahasiswa/${user.user_id}`),
+          api.get(`/laporan/mahasiswa/${user.user_id}`)
+        ]);
+
         const listPendaftaran = resPendaftaran.data;
         const pendaftaranTerbaru = listPendaftaran.length > 0 ? listPendaftaran[0] : null;
 
-        // Ambil data logbook
-        let logCount = 0;
-        if (pendaftaranTerbaru) {
-             const resLogbook = await api.get(`/logbook/mahasiswa/${user.user_id}`);
-             logCount = resLogbook.data.length;
-        }
-
-        // Ambil status laporan
-        const resLaporan = await api.get(`/laporan/mahasiswa/${user.user_id}`);
         const laporanTerbaru = resLaporan.data.length > 0 ? resLaporan.data[0] : null;
 
         setStatus({
           pendaftaran: pendaftaranTerbaru,
-          logbookCount: logCount,
+          logbookCount: resLogbook.data.length,
           laporanStatus: laporanTerbaru ? laporanTerbaru.status : 'Belum Upload'
         });
       } catch (err) {
@@ -47,7 +43,7 @@ export default function DashboardMahasiswa() {
     };
 
     fetchDashboardData();
-  }, [user]);
+  }, [user.user_id]);
 
   if (isLoading) return <DashboardSkeleton />;
 
