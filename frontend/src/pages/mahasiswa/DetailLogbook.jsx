@@ -260,11 +260,22 @@ export default function DetailLogbook() {
         <div className="space-y-4">
             {logbooks.map(log => (
                 <div key={log.logbook_id} className="bg-white border p-6 rounded-3xl flex justify-between items-center shadow-sm">
-                    <div>
-                        <p className="font-bold text-gray-800">{new Date(log.tanggal_log).toLocaleDateString()}</p>
-                        <p className="text-sm text-gray-500">{log.keterangan || 'Log kosong'}</p>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-black uppercase tracking-wider">
+                            {log.jenis_kegiatan}
+                          </span>
+                          <p className="font-bold text-gray-800 text-sm">
+                            {new Date(log.tanggal_log).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 font-medium">
+                          {log.waktu_mulai && new Date(log.waktu_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })} 
+                          {log.waktu_selesai && ` - ${new Date(log.waktu_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">{log.keterangan || 'Log kosong'}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-4">
                         <button onClick={() => handleEdit(log)} className="text-blue-600 font-bold text-xs">Edit</button>
                         <button onClick={() => handleDelete(log.logbook_id)} className="text-red-600 font-bold text-xs">Hapus</button>
                     </div>
