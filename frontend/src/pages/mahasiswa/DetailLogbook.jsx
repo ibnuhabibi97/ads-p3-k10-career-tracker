@@ -10,6 +10,7 @@ export default function DetailLogbook() {
   const [logbooks, setLogbooks] = useState([]);
   const [dosens, setDosens] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -21,6 +22,11 @@ export default function DetailLogbook() {
     jenis_kegiatan: '',
     file_dokumentasi: null
   });
+
+  const filteredDosens = dosens.filter(d => 
+    d.nama.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    d.nip.includes(searchTerm)
+  );
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -71,6 +77,7 @@ export default function DetailLogbook() {
       }
       setEditingId(null);
       setIsFormOpen(false);
+      setSearchTerm('');
       setFormData({
         dosen_id: '',
         tanggal_log: new Date().toISOString().split('T')[0],
@@ -99,6 +106,8 @@ export default function DetailLogbook() {
 
   const handleEdit = (log) => {
     setEditingId(log.logbook_id);
+    const selectedDosen = dosens.find(d => d.user_id === log.dosen_id);
+    setSearchTerm(selectedDosen ? selectedDosen.nama : '');
     setFormData({
         dosen_id: log.dosen_id,
         tanggal_log: log.tanggal_log.split('T')[0],
@@ -122,6 +131,7 @@ export default function DetailLogbook() {
                 <button onClick={() => { 
                   setIsFormOpen(!isFormOpen); 
                   setEditingId(null); 
+                  setSearchTerm('');
                   setFormData({
                     dosen_id: '',
                     tanggal_log: new Date().toISOString().split('T')[0],
@@ -140,12 +150,44 @@ export default function DetailLogbook() {
         {isFormOpen && (
             <form onSubmit={handleSubmit} className="bg-white p-8 border rounded-3xl shadow-sm space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dosen Pembimbing</label>
-                    <select required className="w-full p-3 border rounded-xl text-sm" value={formData.dosen_id} onChange={e => setFormData({...formData, dosen_id: e.target.value})}>
-                        <option value="">Pilih Dosen Pembimbing</option>
-                        {dosens.map(d => <option key={d.user_id} value={d.user_id}>{d.nama}</option>)}
-                    </select>
+                  <div className="space-y-1 relative">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cari Dosen Pembimbing</label>
+                    <input 
+                      type="text"
+                      placeholder="Ketik nama atau NIP..."
+                      className="w-full p-3 border rounded-xl text-sm"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setFormData({...formData, dosen_id: ''});
+                      }}
+                    />
+                    {searchTerm && !formData.dosen_id && (
+                      <div className="absolute z-20 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                        {filteredDosens.length > 0 ? (
+                          filteredDosens.map(d => (
+                            <div 
+                              key={d.user_id} 
+                              className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-0"
+                              onClick={() => {
+                                setFormData({...formData, dosen_id: d.user_id});
+                                setSearchTerm(d.nama);
+                              }}
+                            >
+                              <p className="text-sm font-bold text-gray-800">{d.nama}</p>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase">NIP. {d.nip}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 text-xs text-gray-400 italic">Dosen tidak ditemukan</div>
+                        )}
+                      </div>
+                    )}
+                    {formData.dosen_id && (
+                      <div className="absolute right-3 top-9 text-green-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tanggal Kegiatan</label>
