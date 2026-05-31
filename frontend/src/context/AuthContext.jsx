@@ -36,7 +36,11 @@ export const AuthProvider = ({ children }) => {
       formData.append('username', identifier);
       formData.append('password', password);
 
-      const response = await api.post('/auth/login', formData);
+      const response = await api.post('/auth/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
 
       const { access_token, user: userData } = response.data;
       
@@ -46,9 +50,26 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, role: userData.role };
     } catch (error) {
+      let errorMessage = 'Gagal login.';
+      
+      if (error.response && error.response.data) {
+        const detail = error.response.data.detail;
+        
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          // Tangani error validasi Pydantic (ambil pesan dari elemen pertama)
+          errorMessage = detail[0]?.msg || 'Data input tidak valid.';
+        } else if (typeof detail === 'object' && detail !== null) {
+          errorMessage = detail.message || JSON.stringify(detail);
+        }
+      } else if (error.request) {
+        errorMessage = 'Tidak ada respon dari server. Periksa koneksi atau port.';
+      }
+      
       return { 
         success: false, 
-        message: error.response?.data?.detail || 'Gagal login.' 
+        message: errorMessage 
       };
     }
   };
