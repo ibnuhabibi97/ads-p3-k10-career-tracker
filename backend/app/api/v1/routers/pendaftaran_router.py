@@ -33,13 +33,15 @@ async def daftar_magang(
     cv_contents, rek_contents = await asyncio.gather(cv_contents_task, rek_contents_task)
 
     # 2. Upload ke Supabase secara paralel
-    cv_upload_task = storage_client.upload(
+    cv_upload_task = asyncio.to_thread(
+        storage_client.upload,
         file_data=cv_contents,
         file_name=file_cv.filename,
         content_type=file_cv.content_type,
         folder="pendaftaran/cv"
     )
-    rek_upload_task = storage_client.upload(
+    rek_upload_task = asyncio.to_thread(
+        storage_client.upload,
         file_data=rek_contents,
         file_name=file_rekomendasi.filename,
         content_type=file_rekomendasi.content_type,

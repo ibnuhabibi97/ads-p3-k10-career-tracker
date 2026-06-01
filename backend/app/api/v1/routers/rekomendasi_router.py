@@ -8,6 +8,7 @@ from app.services.rekomendasi_service import SuratRekomendasiService
 from app.api.dependencies import get_rekomendasi_service
 from app.core.security import RoleChecker
 from app.core.storage import storage_client
+import asyncio
 
 router = APIRouter(
     prefix="/surat-rekomendasi",
@@ -31,7 +32,8 @@ async def ajukan_surat(
     """
     # 1. Upload ke Supabase
     contents = await file.read()
-    public_url = storage_client.upload(
+    public_url = await asyncio.to_thread(
+        storage_client.upload,
         file_data=contents,
         file_name=file.filename,
         content_type=file.content_type,
@@ -85,7 +87,8 @@ async def proses_surat_dosen(
             raise HTTPException(status_code=400, detail="Jika disetujui, file bertanda tangan wajib diunggah.")
         
         contents = await file_signed.read()
-        signed_url = storage_client.upload(
+        signed_url = await asyncio.to_thread(
+            storage_client.upload,
             file_data=contents,
             file_name=file_signed.filename,
             content_type=file_signed.content_type,
