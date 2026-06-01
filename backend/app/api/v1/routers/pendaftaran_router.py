@@ -84,7 +84,7 @@ def ambil_detail_pendaftaran(
     pendaftaran = service.ambil_detail_pendaftaran(pendaftaran_id)
     
     # Cek otorisasi jika mahasiswa
-    if current_user["role"] == "mahasiswa" and pendaftaran.mahasiswa_id != current_user["user_id"]:
+    if str(current_user["role"]).lower() == "mahasiswa" and pendaftaran.mahasiswa_id != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Anda tidak memiliki akses ke data ini")
         
     return pendaftaran
