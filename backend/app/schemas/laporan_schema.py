@@ -3,6 +3,7 @@ from typing import Optional, List
 from datetime import date
 from enum import Enum
 from app.schemas.logbook_schemas import LogbookResponse
+from app.schemas.lowongan_schema import LowonganResponse
 
 class LaporanStatus(str, Enum):
     ONGOING = "ONGOING"
@@ -41,5 +42,6 @@ class LaporanResponse(BaseModel):
     dokumen_laporan: Optional[str] = None
     catatan: Optional[str] = None
     logbooks: Optional[List[LogbookResponse]] = None
+    lowongan: Optional[LowonganResponse] = None
 
     model_config = ConfigDict(from_attributes=True)

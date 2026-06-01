@@ -7,16 +7,25 @@ class LaporanRepository:
         self.db = db
 
     def get_all(self):
-        """Ambil semua laporan dengan logbooks"""
-        return self.db.query(Laporan).options(joinedload(Laporan.logbooks)).all()
+        """Ambil semua laporan dengan logbooks dan lowongan"""
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.logbooks),
+            joinedload(Laporan.lowongan)
+        ).all()
 
     def get_by_id(self, laporan_id: int):
-        """Ambil laporan berdasarkan ID dengan logbooks"""
-        return self.db.query(Laporan).options(joinedload(Laporan.logbooks)).filter(Laporan.laporan_id == laporan_id).first()
+        """Ambil laporan berdasarkan ID dengan logbooks dan lowongan"""
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.logbooks),
+            joinedload(Laporan.lowongan)
+        ).filter(Laporan.laporan_id == laporan_id).first()
 
     def get_by_mahasiswa_id(self, mahasiswa_id: int):
-        """Ambil semua laporan milik mahasiswa tertentu dengan logbooks"""
-        return self.db.query(Laporan).options(joinedload(Laporan.logbooks)).filter(Laporan.mahasiswa_id == mahasiswa_id).all()
+        """Ambil semua laporan milik mahasiswa tertentu dengan logbooks dan lowongan"""
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.logbooks),
+            joinedload(Laporan.lowongan)
+        ).filter(Laporan.mahasiswa_id == mahasiswa_id).all()
 
     def get_pending_laporan(self):
         """Ambil semua laporan yang masih pending (belum dinilai)"""
