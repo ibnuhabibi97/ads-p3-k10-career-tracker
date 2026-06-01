@@ -4,6 +4,7 @@ from datetime import date
 from enum import Enum
 from app.schemas.logbook_schemas import LogbookResponse
 from app.schemas.lowongan_schema import LowonganResponse
+from app.schemas.user_schema import MahasiswaResponse
 
 class LaporanStatus(str, Enum):
     ONGOING = "ONGOING"
@@ -43,5 +44,6 @@ class LaporanResponse(BaseModel):
     catatan: Optional[str] = None
     logbooks: Optional[List[LogbookResponse]] = None
     lowongan: Optional[LowonganResponse] = None
+    mahasiswa: Optional[MahasiswaResponse] = None
 
     model_config = ConfigDict(from_attributes=True)

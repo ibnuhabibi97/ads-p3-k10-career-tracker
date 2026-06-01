@@ -7,37 +7,49 @@ class LaporanRepository:
         self.db = db
 
     def get_all(self):
-        """Ambil semua laporan dengan logbooks dan lowongan"""
+        """Ambil semua laporan dengan logbooks, lowongan, dan mahasiswa"""
         return self.db.query(Laporan).options(
             joinedload(Laporan.logbooks),
-            joinedload(Laporan.lowongan)
+            joinedload(Laporan.lowongan),
+            joinedload(Laporan.mahasiswa)
         ).all()
 
     def get_by_id(self, laporan_id: int):
-        """Ambil laporan berdasarkan ID dengan logbooks dan lowongan"""
+        """Ambil laporan berdasarkan ID dengan logbooks, lowongan, dan mahasiswa"""
         return self.db.query(Laporan).options(
             joinedload(Laporan.logbooks),
-            joinedload(Laporan.lowongan)
+            joinedload(Laporan.lowongan),
+            joinedload(Laporan.mahasiswa)
         ).filter(Laporan.laporan_id == laporan_id).first()
 
     def get_by_mahasiswa_id(self, mahasiswa_id: int):
-        """Ambil semua laporan milik mahasiswa tertentu dengan logbooks dan lowongan"""
+        """Ambil semua laporan milik mahasiswa tertentu dengan logbooks, lowongan, dan mahasiswa"""
         return self.db.query(Laporan).options(
             joinedload(Laporan.logbooks),
-            joinedload(Laporan.lowongan)
+            joinedload(Laporan.lowongan),
+            joinedload(Laporan.mahasiswa)
         ).filter(Laporan.mahasiswa_id == mahasiswa_id).all()
 
     def get_pending_laporan(self):
         """Ambil semua laporan yang masih pending (belum dinilai)"""
-        return self.db.query(Laporan).filter(Laporan.status == LaporanStatus.PENDING).all()
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.mahasiswa),
+            joinedload(Laporan.lowongan)
+        ).filter(Laporan.status == LaporanStatus.PENDING).all()
 
     def get_by_status(self, status: str):
         """Ambil laporan berdasarkan status"""
-        return self.db.query(Laporan).filter(Laporan.status == status).all()
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.mahasiswa),
+            joinedload(Laporan.lowongan)
+        ).filter(Laporan.status == status).all()
 
     def get_by_dosen_id(self, dosen_id: int):
         """Ambil semua laporan yang dinilai oleh dosen tertentu"""
-        return self.db.query(Laporan).filter(Laporan.dosen_id == dosen_id).all()
+        return self.db.query(Laporan).options(
+            joinedload(Laporan.mahasiswa),
+            joinedload(Laporan.lowongan)
+        ).filter(Laporan.dosen_id == dosen_id).all()
 
     def create(self, data_dict: dict):
         """Buat laporan baru"""
