@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -20,6 +20,7 @@ semua_user = RoleChecker(["mahasiswa", "dosen", "staff"])
 
 @router.post("/", response_model=SuratRekomendasiResponse, status_code=201)
 async def ajukan_surat(
+    background_tasks: BackgroundTasks,
     dosen_id: int = Form(...),
     file: UploadFile = File(...),
     current_user: dict = Depends(hanya_mahasiswa),
@@ -39,7 +40,7 @@ async def ajukan_surat(
 
     # 2. Proses ke Service
     data = SuratRekomendasiCreate(dosen_id=dosen_id)
-    return await service.ajukan_surat(data, current_user["user_id"], public_url)
+    return await service.ajukan_surat(data, current_user["user_id"], public_url, background_tasks)
 
 @router.get("/mahasiswa/saya", response_model=List[SuratRekomendasiResponse])
 def lihat_surat_saya(
@@ -69,6 +70,7 @@ def detail_surat(
 @router.patch("/{surat_id}/proses", response_model=SuratRekomendasiResponse)
 async def proses_surat_dosen(
     surat_id: int,
+    background_tasks: BackgroundTasks,
     status: SuratRekomendasiStatus = Form(...), # Menggunakan Enum langsung
     file_signed: Optional[UploadFile] = File(None),
     current_user: dict = Depends(hanya_dosen),
@@ -90,4 +92,4 @@ async def proses_surat_dosen(
             folder="surat_rekomendasi"
         )
 
-    return await service.proses_surat_oleh_dosen(surat_id, status, current_user["user_id"], signed_url)
+    return await service.proses_surat_oleh_dosen(surat_id, status, current_user["user_id"], signed_url, background_tasks)

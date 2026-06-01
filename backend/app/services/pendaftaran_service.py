@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.repositories.pendaftaran_repository import PendaftaranRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
@@ -18,7 +18,7 @@ class PendaftaranService:
         self.user_repo = UserRepository(db)
         self.laporan_service = LaporanService(db)
 
-    async def submit_pendaftaran(self, pendaftaran_data: PendaftaranCreate, mahasiswa_id: int):
+    async def submit_pendaftaran(self, pendaftaran_data: PendaftaranCreate, mahasiswa_id: int, background_tasks: BackgroundTasks):
         # 1. Cek validitas lowongan (aktif & belum deadline)
         lowongan = self.lowongan_repo.get_by_id(pendaftaran_data.lowongan_id)
         if not lowongan or not lowongan.is_active or lowongan.deadline < date.today():
@@ -55,7 +55,7 @@ class PendaftaranService:
                     "target_url": f"/staff/pendaftaran/{db_pendaftaran.pendaftaran_id}"
                 })
 
-                # 2. Email ke staff
+                # 2. Email ke staff (BackgroundTasks)
                 pesan_email = f"""
                 <html>
                 <body>
@@ -66,14 +66,11 @@ class PendaftaranService:
                 </body>
                 </html>
                 """
-                try:
-                    await kirim_email_notifikasi(staff.email, "Pendaftaran Magang Baru", pesan_email)
-                except Exception as e:
-                    print(f"Gagal kirim email ke staff {staff.email}: {e}")
+                background_tasks.add_task(kirim_email_notifikasi, staff.email, "Pendaftaran Magang Baru", pesan_email)
 
         return db_pendaftaran
 
-    async def update_status_seleksi(self, pendaftaran_id: int, status_baru: PendaftaranStatus):
+    async def update_status_seleksi(self, pendaftaran_id: int, status_baru: PendaftaranStatus, background_tasks: BackgroundTasks):
         # Cari data pendaftaran
         db_pendaftaran = self.repo.get_by_id(pendaftaran_id)
         if not db_pendaftaran:
@@ -114,10 +111,7 @@ class PendaftaranService:
             </body>
             </html>
             """
-            try:
-                await kirim_email_notifikasi(mahasiswa.email, "Update Status Pendaftaran Magang", pesan_email)
-            except Exception as e:
-                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+            background_tasks.add_task(kirim_email_notifikasi, mahasiswa.email, "Update Status Pendaftaran Magang", pesan_email)
 
         return updated
 

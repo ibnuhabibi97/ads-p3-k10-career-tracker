@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 import datetime
 from app.repositories.laporan_repository import LaporanRepository
 from app.repositories.logbook_repository import LogbookRepository
@@ -106,7 +106,7 @@ class LaporanService:
             
         return self.repo.update(laporan_id, data.model_dump(exclude_unset=True))
 
-    async def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate, dosen_id: int):
+    async def ubah_nilai_laporan(self, laporan_id: int, data: LaporanPenilaianUpdate, dosen_id: int, background_tasks: BackgroundTasks):
         """Update nilai laporan oleh dosen (dengan optional catatan)"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
@@ -135,7 +135,7 @@ class LaporanService:
                 "target_url": f"/mahasiswa/laporan/{laporan_id}"
             })
 
-            # 2. Email ke mahasiswa
+            # 2. Email ke mahasiswa (BackgroundTasks)
             pesan_email = f"""
             <html>
             <body>
@@ -149,14 +149,11 @@ class LaporanService:
             </body>
             </html>
             """
-            try:
-                await kirim_email_notifikasi(mahasiswa.email, "Hasil Penilaian Laporan Magang", pesan_email)
-            except Exception as e:
-                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+            background_tasks.add_task(kirim_email_notifikasi, mahasiswa.email, "Hasil Penilaian Laporan Magang", pesan_email)
 
         return updated_laporan
 
-    async def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate, dosen_id: int):
+    async def ubah_catatan_revisi_dosen(self, laporan_id: int, data: LaporanRevisiDosenUpdate, dosen_id: int, background_tasks: BackgroundTasks):
         """Update catatan revisi oleh dosen ketika menolak laporan"""
         laporan = self.repo.get_by_id(laporan_id)
         if not laporan:
@@ -193,10 +190,7 @@ class LaporanService:
             </body>
             </html>
             """
-            try:
-                await kirim_email_notifikasi(mahasiswa.email, "Revisi Laporan Magang", pesan_email)
-            except Exception as e:
-                print(f"Gagal kirim email ke mahasiswa {mahasiswa.email}: {e}")
+            background_tasks.add_task(kirim_email_notifikasi, mahasiswa.email, "Revisi Laporan Magang", pesan_email)
 
         return updated_laporan
 

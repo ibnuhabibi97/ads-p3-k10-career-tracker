@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from app.repositories.rekomendasi_repository import SuratRekomendasiRepository
 from app.repositories.notifikasi_repository import NotifikasiRepository
 from app.repositories.user_repository import UserRepository
@@ -12,7 +12,7 @@ class SuratRekomendasiService:
         self.notif_repo = NotifikasiRepository(db)
         self.user_repo = UserRepository(db)
 
-    async def ajukan_surat(self, data: SuratRekomendasiCreate, mahasiswa_id: int, public_url: str):
+    async def ajukan_surat(self, data: SuratRekomendasiCreate, mahasiswa_id: int, public_url: str, background_tasks: BackgroundTasks):
         """
         Alur: Mahasiswa upload surat -> sistem notif ke dosen (sistem + email)
         """
@@ -46,7 +46,7 @@ class SuratRekomendasiService:
                 "target_url": f"/dosen/surat-rekomendasi/{db_surat.surat_id}"
             })
 
-            # 5. Kirim email ke dosen
+            # 5. Kirim email ke dosen (BackgroundTasks)
             pesan_email = f"""
             <html>
             <body>
@@ -57,14 +57,11 @@ class SuratRekomendasiService:
             </body>
             </html>
             """
-            try:
-                await kirim_email_notifikasi(dosen.email, "Permohonan Surat Rekomendasi Baru", pesan_email)
-            except Exception as e:
-                print(f"Gagal kirim email: {e}")
+            background_tasks.add_task(kirim_email_notifikasi, dosen.email, "Permohonan Surat Rekomendasi Baru", pesan_email)
 
         return db_surat
 
-    async def proses_surat_oleh_dosen(self, surat_id: int, status: SuratRekomendasiStatus, dosen_id: int, signed_url: str = None):
+    async def proses_surat_oleh_dosen(self, surat_id: int, status: SuratRekomendasiStatus, dosen_id: int, signed_url: str = None, background_tasks: BackgroundTasks = None):
         """
         Alur: Dosen tolak/setujui surat -> jika setuju upload surat bertanda tangan -> notif ke mahasiswa
         """
@@ -92,7 +89,7 @@ class SuratRekomendasiService:
                 "target_url": "/mahasiswa/surat-rekomendasi"
             })
 
-            # 2. Email ke mahasiswa
+            # 2. Email ke mahasiswa (BackgroundTasks)
             pesan_email = f"""
             <html>
             <body>
@@ -103,10 +100,13 @@ class SuratRekomendasiService:
             </body>
             </html>
             """
-            try:
-                await kirim_email_notifikasi(mahasiswa.email, f"Surat Rekomendasi {status_teks}", pesan_email)
-            except Exception as e:
-                print(f"Gagal kirim email: {e}")
+            if background_tasks:
+                background_tasks.add_task(kirim_email_notifikasi, mahasiswa.email, f"Surat Rekomendasi {status_teks}", pesan_email)
+            else:
+                try:
+                    await kirim_email_notifikasi(mahasiswa.email, f"Surat Rekomendasi {status_teks}", pesan_email)
+                except Exception as e:
+                    print(f"Gagal kirim email: {e}")
 
         return updated_surat
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, Form
+from fastapi import APIRouter, Depends, File, UploadFile, Form, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -29,7 +29,7 @@ def get_all_laporan(service: LaporanService = Depends(get_laporan_service)):
     """Ambil semua laporan"""
     return service.ambil_semua_laporan()
 
-@router.get("/{laporan_id}", response_model=LaporanResponse, dependencies=[Depends(semua_user_terdaftar)])
+@router.get("/{laporan_id}", response_model=List[LaporanResponse], dependencies=[Depends(semua_user_terdaftar)])
 def get_laporan_by_id(
     laporan_id: int, 
     current_user: dict = Depends(semua_user_terdaftar),
@@ -127,21 +127,23 @@ def get_laporan_dosen(dosen_id: int, service: LaporanService = Depends(get_lapor
 async def update_nilai_laporan(
     laporan_id: int, 
     data: LaporanPenilaianUpdate, 
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(hanya_dosen),
     service: LaporanService = Depends(get_laporan_service)
 ):
     """Update nilai laporan oleh dosen (dengan optional catatan revisi)"""
-    return await service.ubah_nilai_laporan(laporan_id, data, current_user["user_id"])
+    return await service.ubah_nilai_laporan(laporan_id, data, current_user["user_id"], background_tasks)
 
 @router.patch("/{laporan_id}/revisi-dosen", response_model=LaporanResponse)
 async def update_catatan_revisi_dosen(
     laporan_id: int, 
     data: LaporanRevisiDosenUpdate, 
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(hanya_dosen),
     service: LaporanService = Depends(get_laporan_service)
 ):
     """Update catatan revisi oleh dosen ketika menolak laporan"""
-    return await service.ubah_catatan_revisi_dosen(laporan_id, data, current_user["user_id"])
+    return await service.ubah_catatan_revisi_dosen(laporan_id, data, current_user["user_id"], background_tasks)
 
 # ============================================
 # ENDPOINT UNTUK STAFF
