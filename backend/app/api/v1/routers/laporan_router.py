@@ -29,7 +29,7 @@ def get_all_laporan(service: LaporanService = Depends(get_laporan_service)):
     """Ambil semua laporan"""
     return service.ambil_semua_laporan()
 
-@router.get("/{laporan_id}", response_model=List[LaporanResponse], dependencies=[Depends(semua_user_terdaftar)])
+@router.get("/{laporan_id}", response_model=LaporanResponse, dependencies=[Depends(semua_user_terdaftar)])
 def get_laporan_by_id(
     laporan_id: int, 
     current_user: dict = Depends(semua_user_terdaftar),
@@ -39,7 +39,7 @@ def get_laporan_by_id(
     laporan = service.ambil_laporan_by_id(laporan_id)
     
     # Pengecekan akses: mahasiswa hanya bisa akses miliknya sendiri
-    if current_user["role"] == "mahasiswa" and laporan.mahasiswa_id != current_user["user_id"]:
+    if str(current_user["role"]).lower() == "mahasiswa" and laporan.mahasiswa_id != current_user["user_id"]:
         raise HTTPException(status_code=403, detail="Anda tidak memiliki akses ke laporan ini.")
         
     return laporan
