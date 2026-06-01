@@ -144,7 +144,7 @@ export default function VerifikasiPendaftaran() {
                    </div>
                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tanggal Daftar</p>
-                      <p className="text-sm font-bold text-gray-800">{new Date(app.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      <p className="text-sm font-bold text-gray-800">{app.tanggal_daftar ? new Date(app.tanggal_daftar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
                    </div>
                 </div>
 
