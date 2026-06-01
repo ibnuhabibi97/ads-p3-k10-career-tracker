@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     #Konfigurasi Keamanan (JWT & Auth)
     SECRET_KEY: str 
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 # Waktu token kedaluwarsa (dalam menit)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440 # Waktu token kedaluwarsa (dalam menit)
 
     # --- Konfigurasi SMTP (Email) ---
     MAIL_USERNAME: str
